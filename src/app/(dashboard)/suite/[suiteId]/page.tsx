@@ -6,7 +6,9 @@ import { RunAllButton } from './_components/RunAllButton'
 import { SpecList } from './_components/SpecList'
 import { RunHistoryTable } from './_components/RunHistoryTable'
 import { RunStatusPoller } from './_components/RunStatusPoller'
-import type { TestRun, Spec } from '@/lib/types'
+import { ApiTestResultCard } from '@/components/test-results/ApiTestResultCard'
+import { UiTestResultCard } from '@/components/test-results/UiTestResultCard'
+import type { TestRun, Spec, TestResultWithCases } from '@/lib/types'
 
 async function getSuiteData(suiteId: string) {
   const supabase = await createClient()
@@ -24,7 +26,21 @@ async function getSuiteData(suiteId: string) {
 
   if (error || !suite) return null
 
-  return { suite, specs: specs ?? [], runs: runs ?? [] }
+  // Fetch test_results + test_cases for the latest run
+  const latestRunId = (runs ?? [])[0]?.id
+  let latestResults: TestResultWithCases[] = []
+
+  if (latestRunId) {
+    const { data: results } = await supabase
+      .from('test_results')
+      .select('*, spec:specs(*), cases:test_cases(*)')
+      .eq('run_id', latestRunId)
+      .order('created_at')
+
+    latestResults = (results ?? []) as TestResultWithCases[]
+  }
+
+  return { suite, specs: specs ?? [], runs: runs ?? [], latestResults }
 }
 
 export default async function SuitePage({
@@ -37,7 +53,7 @@ export default async function SuitePage({
 
   if (!data) notFound()
 
-  const { suite, specs, runs } = data
+  const { suite, specs, runs, latestResults } = data
 
   const lastRun = runs[0] ?? null
 
@@ -53,6 +69,8 @@ export default async function SuitePage({
   const activeRunIds = runs
     .filter((r) => r.status === 'pending' || r.status === 'running')
     .map((r) => r.id)
+
+  const isApi = suite.suite_type === 'api'
 
   return (
     <div className="space-y-6">
@@ -77,7 +95,26 @@ export default async function SuitePage({
         />
       </Card>
 
-      <RunHistoryTable runs={runs as TestRun[]} />
+      {/* Latest run results */}
+      {latestResults.length > 0 && (
+        <Card padding={false}>
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800">
+            <h2 className="text-sm font-semibold text-gray-200">Latest Run Results</h2>
+            <span className="text-xs text-gray-600">
+              {latestResults.reduce((n, r) => n + r.cases.length, 0)} test cases
+            </span>
+          </div>
+          <div className="p-4 space-y-2">
+            {latestResults.map((result) =>
+              isApi
+                ? <ApiTestResultCard key={result.id} result={result} />
+                : <UiTestResultCard key={result.id} result={result} />
+            )}
+          </div>
+        </Card>
+      )}
+
+      <RunHistoryTable runs={runs as TestRun[]} suiteType={suite.suite_type as 'api' | 'ui'} />
     </div>
   )
 }
