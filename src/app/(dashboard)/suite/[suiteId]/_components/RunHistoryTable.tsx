@@ -40,7 +40,7 @@ function RunRow({ run, suiteType }: { run: TestRun; suiteType: 'api' | 'ui' }) {
     }
   }
 
-  const canExpand = run.status === 'passed' || run.status === 'failed'
+  const canExpand = run.status === 'passed' || run.status === 'failed' || run.status === 'error'
 
   return (
     <div className="border-b border-gray-800 last:border-0">
