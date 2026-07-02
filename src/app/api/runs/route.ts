@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase'
+import { createServiceClient } from '@/lib/supabase'
 import { requireAuth } from '@/lib/auth'
 import { triggerWorkflowDispatch } from '@/lib/github'
 
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'suiteId and suiteName are required' }, { status: 400 })
   }
 
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // Create the test_run row with status 'pending'
   const { data: runRow, error: insertError } = await supabase
