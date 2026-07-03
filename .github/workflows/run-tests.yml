@@ -66,16 +66,18 @@ jobs:
           npx cypress run \
             --spec "${{ steps.spec.outputs.pattern }}" \
             --reporter json \
-            --reporter-options "output=cypress/results/results.json" || true
+            --reporter-options output=cypress/results/results.json || true
 
       - name: Verify results file
         if: always()
         run: |
+          echo "Contents of cypress/results/:"
+          ls -la cypress/results/ || echo "No results/ dir"
           if [ -f cypress/results/results.json ]; then
             echo "results.json found ($(wc -c < cypress/results/results.json) bytes)"
+            head -c 200 cypress/results/results.json
           else
             echo "ERROR: results.json NOT created"
-            ls -la cypress/results/ || echo "No results/ dir"
           fi
 
       - name: Report results to Supabase
