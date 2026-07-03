@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { clsx } from 'clsx'
 import { LayoutDashboard, RefreshCw, CheckCircle, FileText } from 'lucide-react'
+import Image from 'next/image'
 import { toast } from 'sonner'
 import { SidebarSuiteItem } from './SidebarSuiteItem'
 import type { SuiteWithLastRun } from '@/lib/types'
@@ -124,10 +125,8 @@ export function Sidebar({ suites }: SidebarProps) {
     <aside className="w-60 shrink-0 bg-gray-950 border-r border-gray-800 flex flex-col h-full">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 py-4 border-b border-gray-800">
-        <div className="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-lg">
-          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+        <div className="flex items-center justify-center w-8 h-8 bg-white rounded-lg shrink-0">
+          <Image src="/logo_baznas.png" alt="BAZNAS" width={24} height={24} className="object-contain" />
         </div>
         <span className="font-bold text-white text-sm tracking-wide">QA Dashboard</span>
       </div>

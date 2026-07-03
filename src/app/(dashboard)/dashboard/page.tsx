@@ -24,15 +24,17 @@ async function getDashboardData() {
 
   const stats: DashboardStats = { total_runs: totalRuns, total_passed: totalPassed, total_need_fix: totalNeedFix, total_failed: totalFailed, pass_rate: passRate }
 
-  // Trend data: last 14 days
+  // Trend data: last 30 days (client slices to 7/14/30 based on period selection)
   const today = new Date()
-  const trendData: TrendDataPoint[] = Array.from({ length: 14 }, (_, i) => {
-    const date = subDays(today, 13 - i)
+  const trendData: TrendDataPoint[] = Array.from({ length: 30 }, (_, i) => {
+    const date = subDays(today, 29 - i)
     const dateStr = format(date, 'MMM d')
+    const fullDate = format(date, 'd MMM yyyy')
     const dayStr = format(date, 'yyyy-MM-dd')
     const dayRuns = allRuns.filter((r) => r.created_at.startsWith(dayStr))
     return {
       date: dateStr,
+      fullDate,
       passed: dayRuns.filter((r) => r.status === 'passed').length,
       failed: dayRuns.filter((r) => r.status === 'failed').length,
     }

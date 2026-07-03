@@ -96,7 +96,8 @@ export interface DashboardStats {
 }
 
 export interface TrendDataPoint {
-  date: string
+  date: string      // "Jul 3" — short label for X axis
+  fullDate: string  // "3 Jul 2026" — for range label display
   passed: number
   failed: number
 }

@@ -16,6 +16,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'QA Dashboard',
   description: 'Professional testing dashboard — view results, run tests, track history.',
+  icons: {
+    icon: '/logo_baznas.png',
+    apple: '/logo_baznas.png',
+  },
 }
 
 export default function RootLayout({

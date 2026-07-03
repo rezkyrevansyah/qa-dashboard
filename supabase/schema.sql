@@ -90,7 +90,17 @@ CREATE TABLE public.public_reports (
   is_active boolean NOT NULL DEFAULT true,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  created_by text,
   CONSTRAINT public_reports_pkey PRIMARY KEY (id),
-  CONSTRAINT public_reports_run_id_fkey FOREIGN KEY (run_id) REFERENCES public.test_runs(id),
-  CONSTRAINT public_reports_suite_id_fkey FOREIGN KEY (suite_id) REFERENCES public.suites(id)
+  CONSTRAINT public_reports_suite_id_fkey FOREIGN KEY (suite_id) REFERENCES public.suites(id),
+  CONSTRAINT public_reports_run_id_fkey FOREIGN KEY (run_id) REFERENCES public.test_runs(id)
+);
+CREATE TABLE public.run_notes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  run_id uuid NOT NULL UNIQUE,
+  content text NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT run_notes_pkey PRIMARY KEY (id),
+  CONSTRAINT run_notes_run_id_fkey FOREIGN KEY (run_id) REFERENCES public.test_runs(id)
 );
