@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { ApiTestResultCard } from '@/components/test-results/ApiTestResultCard'
 import { UiTestResultCard } from '@/components/test-results/UiTestResultCard'
 import { formatDistanceToNow } from 'date-fns'
-import { ExternalLink, ChevronDown, ChevronRight, Trash2, RotateCcw, Share2 } from 'lucide-react'
+import { ExternalLink, ChevronDown, ChevronRight, Trash2, RotateCcw, Share2, FileText } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { toast } from 'sonner'
 import type { TestRun, TestResultWithCases, RunStatus } from '@/lib/types'
@@ -72,6 +72,137 @@ function ConfirmDialog({
   )
 }
 
+// ── Notes Dialog ─────────────────────────────────────────────────────────────
+
+function NotesDialog({
+  open,
+  onOpenChange,
+  runId,
+  initialNote,
+  onSaved,
+  onDeleted,
+}: {
+  open: boolean
+  onOpenChange: (v: boolean) => void
+  runId: string
+  initialNote: string | null
+  onSaved: (content: string) => void
+  onDeleted: () => void
+}) {
+  const [content, setContent] = useState(initialNote ?? '')
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  // Sync content when dialog opens with a new note value
+  const [prevOpen, setPrevOpen] = useState(false)
+  if (open && !prevOpen) {
+    if (content !== (initialNote ?? '')) setContent(initialNote ?? '')
+    setPrevOpen(true)
+  } else if (!open && prevOpen) {
+    setPrevOpen(false)
+  }
+
+  async function handleSave() {
+    if (!content.trim()) return
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/notes/${runId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: content.trim() }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error ?? `Gagal menyimpan (${res.status})`)
+      }
+      onSaved(content.trim())
+      onOpenChange(false)
+      toast.success('Notes disimpan')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Gagal menyimpan notes')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/notes/${runId}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error ?? `Gagal menghapus (${res.status})`)
+      }
+      setContent('')
+      onDeleted()
+      onOpenChange(false)
+      toast.success('Notes dihapus')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Gagal menghapus notes')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-black/60 z-40" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-gray-900 border border-gray-700 rounded-xl p-6 shadow-xl">
+          <Dialog.Title className="text-sm font-semibold text-gray-100 mb-0.5">
+            Notes untuk Run <span className="font-mono text-gray-400">{runId.slice(0, 8)}…</span>
+          </Dialog.Title>
+          <Dialog.Description className="text-xs text-gray-500 mb-4">
+            Catatan ini akan muncul di public report untuk developer.
+          </Dialog.Description>
+
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            maxLength={2000}
+            rows={5}
+            placeholder="Tulis catatan QA untuk run ini..."
+            className="w-full px-3 py-2 bg-gray-950 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-gray-500 resize-none transition-colors"
+          />
+          <div className="flex items-center justify-between mt-1 mb-4">
+            <span className="text-xs text-gray-700">{content.length}/2000</span>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              {initialNote !== null && (
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting || saving}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-400 border border-red-800/50 rounded hover:bg-red-950/30 disabled:opacity-40 transition-colors"
+                >
+                  {deleting ? <Spinner size="sm" /> : <Trash2 className="w-3 h-3" />}
+                  Hapus
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Dialog.Close asChild>
+                <button className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 transition-colors">
+                  Batal
+                </button>
+              </Dialog.Close>
+              <Button
+                onClick={handleSave}
+                loading={saving}
+                disabled={!content.trim() || deleting}
+                size="sm"
+              >
+                Simpan
+              </Button>
+            </div>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+
 // ── Single Run Row ───────────────────────────────────────────────────────────
 
 function RunRow({
@@ -101,6 +232,9 @@ function RunRow({
   const [publishedToken, setPublishedToken] = useState<string | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [noteOpen, setNoteOpen] = useState(false)
+  const [noteContent, setNoteContent] = useState<string | null>(null)
+  const [noteFetched, setNoteFetched] = useState(false)
 
   async function handleExpand() {
     if (expanded) { setExpanded(false); return }
@@ -206,6 +340,22 @@ function RunRow({
     }
   }
 
+  async function handleOpenNotes() {
+    setNoteOpen(true)
+    if (noteFetched) return
+    try {
+      const res = await fetch(`/api/notes/${run.id}`)
+      if (res.ok) {
+        const data = await res.json()
+        setNoteContent(data ? data.content : null)
+      }
+    } catch {
+      // silently ignore — user can still type
+    } finally {
+      setNoteFetched(true)
+    }
+  }
+
   const canPublish = run.status === 'passed' || run.status === 'need_fix' || run.status === 'failed'
   const canExpand = run.status === 'passed' || run.status === 'failed' || run.status === 'error' || run.status === 'need_fix'
 
@@ -218,6 +368,14 @@ function RunRow({
         description={`Run ${run.id.slice(0, 8)}… akan dihapus permanen beserta semua hasil testnya.`}
         onConfirm={handleDelete}
         loading={deleting}
+      />
+      <NotesDialog
+        open={noteOpen}
+        onOpenChange={setNoteOpen}
+        runId={run.id}
+        initialNote={noteFetched ? noteContent : null}
+        onSaved={(content) => setNoteContent(content)}
+        onDeleted={() => setNoteContent(null)}
       />
 
       <div className="border-b border-gray-800 last:border-0">
@@ -309,6 +467,13 @@ function RunRow({
                 {publishing ? <Spinner size="sm" /> : <Share2 className="w-3.5 h-3.5" />}
               </button>
             )}
+            <button
+              onClick={handleOpenNotes}
+              title={noteContent ? 'Edit notes' : 'Tambah notes'}
+              className={`p-1 transition-colors ${noteContent ? 'text-amber-400 hover:text-amber-300' : 'text-gray-600 hover:text-amber-400'}`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+            </button>
             <button
               onClick={() => setDeleteOpen(true)}
               title="Hapus run ini"

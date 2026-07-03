@@ -82,3 +82,15 @@ CREATE TABLE public.sync_jobs (
   error_message text,
   CONSTRAINT sync_jobs_pkey PRIMARY KEY (id)
 );
+CREATE TABLE public.public_reports (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  token text NOT NULL UNIQUE,
+  run_id uuid NOT NULL,
+  suite_id uuid NOT NULL,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT public_reports_pkey PRIMARY KEY (id),
+  CONSTRAINT public_reports_run_id_fkey FOREIGN KEY (run_id) REFERENCES public.test_runs(id),
+  CONSTRAINT public_reports_suite_id_fkey FOREIGN KEY (suite_id) REFERENCES public.suites(id)
+);

@@ -115,3 +115,11 @@ export interface PublicReportWithDetails extends PublicReport {
   run: TestRun
   suite: Suite
 }
+
+export interface RunNote {
+  id: string
+  run_id: string
+  content: string
+  created_at: string
+  updated_at: string
+}

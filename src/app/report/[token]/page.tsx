@@ -1,9 +1,9 @@
 import { createServiceClient } from '@/lib/supabase'
 import { RunStatusBadge } from '@/components/ui/RunStatusBadge'
-import { ApiTestResultCard } from '@/components/test-results/ApiTestResultCard'
-import { UiTestResultCard } from '@/components/test-results/UiTestResultCard'
-import { AlertTriangle, CheckCircle, ExternalLink } from 'lucide-react'
-import type { RunStatus, SuiteType, TestStatus, HttpMethod } from '@/lib/types'
+import { AlertTriangle, CheckCircle, ExternalLink, FileText } from 'lucide-react'
+import type { RunStatus, SuiteType } from '@/lib/types'
+import { PublicReportResults } from './_components/PublicReportResults'
+import type { PublicTestResult } from './_components/PublicReportResults'
 
 interface PageProps {
   params: Promise<{ token: string }>
@@ -30,25 +30,6 @@ interface PublicReportSuite {
   description: string | null
 }
 
-interface PublicTestCase {
-  id: string
-  title: string
-  status: TestStatus
-  duration_ms: number | null
-  error_message: string | null
-  http_method: HttpMethod | null
-  http_url: string | null
-  http_status: number | null
-}
-
-interface PublicTestResult {
-  id: string
-  status: TestStatus
-  duration_ms: number | null
-  spec: { id: string; name: string; path: string }
-  cases: PublicTestCase[]
-}
-
 async function getPublicReport(token: string) {
   const supabase = createServiceClient()
 
@@ -61,7 +42,7 @@ async function getPublicReport(token: string) {
   if (reportErr || !report) return { status: 'not_found' as const }
   if (!report.is_active) return { status: 'expired' as const }
 
-  const [{ data: suite }, { data: run }, { data: results }] = await Promise.all([
+  const [{ data: suite }, { data: run }, { data: results }, { data: note }] = await Promise.all([
     supabase
       .from('suites')
       .select('id, name, suite_type, description')
@@ -81,6 +62,11 @@ async function getPublicReport(token: string) {
       `)
       .eq('run_id', report.run_id)
       .order('created_at', { ascending: true }),
+    supabase
+      .from('run_notes')
+      .select('content, updated_at')
+      .eq('run_id', report.run_id)
+      .maybeSingle(),
   ])
 
   return {
@@ -89,6 +75,7 @@ async function getPublicReport(token: string) {
     suite: suite as PublicReportSuite,
     run: run as PublicReportRun,
     results: (results ?? []) as unknown as PublicTestResult[],
+    note: note as { content: string; updated_at: string } | null,
   }
 }
 
@@ -130,7 +117,7 @@ export default async function PublicReportPage({ params }: PageProps) {
     )
   }
 
-  const { suite, run, results, report } = data
+  const { suite, run, results, report, note } = data
   const passRate = run.total_tests > 0
     ? Math.round((run.passed_tests / run.total_tests) * 100)
     : 0
@@ -198,21 +185,21 @@ export default async function PublicReportPage({ params }: PageProps) {
           </div>
 
           <div className="flex items-center justify-between pt-2 border-t border-gray-800">
-            <div className="flex items-center gap-2">
-              <div className="w-full bg-gray-800 rounded-full h-2 w-40">
+            <div className="flex items-center gap-3 flex-1 min-w-0 mr-4">
+              <span className="text-sm font-semibold text-gray-300 whitespace-nowrap">{passRate}% pass rate</span>
+              <div className="flex-1 bg-gray-800 rounded-full h-2 min-w-[60px]">
                 <div
                   className={`h-2 rounded-full transition-all ${passRate === 100 ? 'bg-green-500' : passRate > 0 ? 'bg-amber-500' : 'bg-red-500'}`}
                   style={{ width: `${passRate}%` }}
                 />
               </div>
-              <span className="text-sm font-semibold text-gray-300">{passRate}% pass rate</span>
             </div>
             {run.github_run_url && (
               <a
                 href={run.github_run_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors shrink-0"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 GitHub Actions
@@ -221,34 +208,26 @@ export default async function PublicReportPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Results */}
-        {results.length > 0 && (
-          <div className="space-y-3">
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Test Results</h2>
-            {results.map((result) => {
-              // Cast to shape expected by cards
-              const cardResult = {
-                ...result,
-                spec: { ...result.spec, suite_id: suite.id, created_at: '', updated_at: '' },
-                cases: result.cases.map((c) => ({
-                  ...c,
-                  result_id: result.id,
-                  error_stack: null,
-                  http_duration_ms: null,
-                  screenshot_url: null,
-                  created_at: '',
-                })),
-                error_message: null,
-                error_stack: null,
-                created_at: '',
-                run_id: run.id,
-                spec_id: result.spec.id,
-              } as unknown as import('@/lib/types').TestResultWithCases
-              return suite.suite_type === 'api'
-                ? <ApiTestResultCard key={result.id} result={cardResult} />
-                : <UiTestResultCard key={result.id} result={cardResult} />
-            })}
+        {/* QA Notes */}
+        {note && (
+          <div className="bg-amber-950/30 border border-amber-800/50 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-4 h-4 text-amber-400 shrink-0" />
+              <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">Notes dari QA</span>
+            </div>
+            <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{note.content}</p>
+            <p className="text-xs text-gray-600 mt-3">Diperbarui {formatDate(note.updated_at)}</p>
           </div>
+        )}
+
+        {/* Results with filters */}
+        {results.length > 0 && (
+          <PublicReportResults
+            results={results}
+            suiteType={suite.suite_type}
+            suiteId={suite.id}
+            runId={run.id}
+          />
         )}
       </main>
 
