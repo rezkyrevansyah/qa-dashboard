@@ -1,7 +1,6 @@
 import { createServiceClient } from '@/lib/supabase'
 import { RunStatusBadge } from '@/components/ui/RunStatusBadge'
 import { AlertTriangle, CheckCircle, FileText, User } from 'lucide-react'
-import Image from 'next/image'
 import type { RunStatus, SuiteType } from '@/lib/types'
 import { PublicReportResults } from './_components/PublicReportResults'
 import type { PublicTestResult } from './_components/PublicReportResults'
@@ -130,8 +129,9 @@ export default async function PublicReportPage({ params }: PageProps) {
       {/* Header */}
       <header className="border-b border-gray-800 bg-gray-900/50">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
-          <div className="flex items-center justify-center w-8 h-8 bg-white rounded-lg shrink-0">
-            <Image src="/logo_baznas.png" alt="BAZNAS" width={24} height={24} className="object-contain" />
+          <div className="w-8 h-8 bg-white rounded-lg shrink-0 p-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo_baznas.png" alt="BAZNAS" className="w-full h-full object-contain" />
           </div>
           <span className="font-bold text-white text-sm tracking-wide">QA Dashboard</span>
           <span className="text-gray-600 text-sm ml-2">· Public Report</span>
