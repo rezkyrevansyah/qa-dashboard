@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { clsx } from 'clsx'
-import { LayoutDashboard, RefreshCw, CheckCircle, FileText } from 'lucide-react'
+import { LayoutDashboard, RefreshCw, CheckCircle, FileText, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { SidebarSuiteItem } from './SidebarSuiteItem'
 import type { SuiteWithLastRun } from '@/lib/types'
@@ -20,6 +20,13 @@ export function Sidebar({ suites }: SidebarProps) {
   const isDashboard = pathname === '/dashboard'
   const isReports = pathname === '/reports'
   const [syncing, setSyncing] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+
+  function handleRefresh() {
+    setRefreshing(true)
+    router.refresh()
+    setTimeout(() => setRefreshing(false), 800)
+  }
   const channelRef = useRef<ReturnType<ReturnType<typeof createClient>['channel']> | null>(null)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
   const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null)
@@ -128,7 +135,14 @@ export function Sidebar({ suites }: SidebarProps) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo_baznas.png" alt="BAZNAS" className="w-full h-full object-contain" />
         </div>
-        <span className="font-bold text-white text-sm tracking-wide">QA Dashboard</span>
+        <span className="font-bold text-white text-sm tracking-wide flex-1">QA Dashboard</span>
+        <button
+          onClick={handleRefresh}
+          title="Refresh halaman"
+          className="text-gray-600 hover:text-gray-300 transition-colors"
+        >
+          <RotateCcw className={clsx('w-3.5 h-3.5', refreshing && 'animate-spin')} />
+        </button>
       </div>
 
       {/* Nav */}
