@@ -64,9 +64,7 @@ jobs:
         continue-on-error: true
         run: |
           npx cypress run \
-            --spec "${{ steps.spec.outputs.pattern }}" \
-            --reporter json \
-            --reporter-options output=cypress/results/results.json || true
+            --spec "${{ steps.spec.outputs.pattern }}" || true
 
       - name: Verify results file
         if: always()

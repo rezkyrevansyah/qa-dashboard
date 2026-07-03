@@ -2,10 +2,12 @@
   "compilerOptions": {
     "target": "ES2017",
     "lib": ["ES2017", "dom"],
-    "types": ["cypress", "node"],
+    "types": ["cypress"],
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "moduleResolution": "node10",
+    "ignoreDeprecations": "6.0"
   },
   "include": ["./**/*.ts"],
   "exclude": []
