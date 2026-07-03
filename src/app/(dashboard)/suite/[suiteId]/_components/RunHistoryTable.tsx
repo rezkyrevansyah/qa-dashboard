@@ -19,6 +19,7 @@ function RunRow({ run, suiteType }: { run: TestRun; suiteType: 'api' | 'ui' }) {
   const [expanded, setExpanded] = useState(false)
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<TestResultWithCases[] | null>(null)
+  const [fetchError, setFetchError] = useState<string | null>(null)
 
   async function handleExpand() {
     if (expanded) {
@@ -29,12 +30,18 @@ function RunRow({ run, suiteType }: { run: TestRun; suiteType: 'api' | 'ui' }) {
     if (results !== null) return // already fetched
 
     setLoading(true)
+    setFetchError(null)
     try {
       const res = await fetch(`/api/runs/${run.id}/results`)
-      if (res.ok) {
-        const data = await res.json()
-        setResults(data)
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setFetchError(data.error ?? `Failed to load results (${res.status})`)
+        return
       }
+      const data = await res.json()
+      setResults(data)
+    } catch {
+      setFetchError('Network error — could not load results')
     } finally {
       setLoading(false)
     }
@@ -100,6 +107,8 @@ function RunRow({ run, suiteType }: { run: TestRun; suiteType: 'api' | 'ui' }) {
               <Spinner size="sm" />
               Loading results…
             </div>
+          ) : fetchError ? (
+            <p className="py-4 text-xs text-red-500">{fetchError}</p>
           ) : results && results.length > 0 ? (
             <div className="space-y-2 pt-2">
               {results.map((result) =>

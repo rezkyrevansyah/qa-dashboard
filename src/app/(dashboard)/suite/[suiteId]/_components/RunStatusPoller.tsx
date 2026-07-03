@@ -59,7 +59,8 @@ export function RunStatusPoller({ suiteId, activeRunIds }: RunStatusPollerProps)
       supabase.removeChannel(channel)
       if (pollingRef.current) clearInterval(pollingRef.current)
     }
-  }, [suiteId, activeRunIds, router])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suiteId, JSON.stringify(activeRunIds)])
 
   return null
 }
