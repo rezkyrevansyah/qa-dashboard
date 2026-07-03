@@ -39,11 +39,17 @@ export async function POST(req: Request, { params }: RouteContext) {
 
   // Validate test_case_ids belong to this run
   if (testCaseIds.length > 0) {
+    const { data: resultRows } = await supabase
+      .from('test_results')
+      .select('id')
+      .eq('run_id', runId)
+    const resultIds = (resultRows ?? []).map((r: { id: string }) => r.id)
+
     const { data: valid } = await supabase
       .from('test_cases')
       .select('id')
       .in('id', testCaseIds)
-      .in('result_id', supabase.from('test_results').select('id').eq('run_id', runId) as unknown as string[])
+      .in('result_id', resultIds.length > 0 ? resultIds : [''])
     const validIds = new Set((valid ?? []).map((r: { id: string }) => r.id))
     const invalid = testCaseIds.filter((id) => !validIds.has(id))
     if (invalid.length > 0) {
@@ -71,6 +77,52 @@ export async function POST(req: Request, { params }: RouteContext) {
     .from('run_notes')
     .select(NOTE_SELECT)
     .eq('id', note.id)
+    .single()
+  if (fullErr) return NextResponse.json({ error: fullErr.message }, { status: 500 })
+  return NextResponse.json(full)
+}
+
+export async function PATCH(req: Request, { params }: RouteContext) {
+  try { await requireAuth() } catch (res) { return res as Response }
+  const { runId } = await params
+  const body = await req.json().catch(() => ({}))
+  const noteId = typeof body.noteId === 'string' ? body.noteId : null
+  const content = typeof body.content === 'string' ? body.content.trim() : ''
+  if (!noteId) return NextResponse.json({ error: 'noteId is required' }, { status: 400 })
+  if (!content) return NextResponse.json({ error: 'content is required' }, { status: 400 })
+  const testCaseIds: string[] = Array.isArray(body.test_case_ids) ? body.test_case_ids : []
+
+  const supabase = await createClient()
+
+  // Validate note belongs to this run
+  const { data: existing } = await supabase
+    .from('run_notes')
+    .select('id')
+    .eq('id', noteId)
+    .eq('run_id', runId)
+    .maybeSingle()
+  if (!existing) return NextResponse.json({ error: 'Note not found' }, { status: 404 })
+
+  // Update content
+  const { error: updateErr } = await supabase
+    .from('run_notes')
+    .update({ content, updated_at: new Date().toISOString() })
+    .eq('id', noteId)
+  if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
+
+  // Replace test case references: delete old, insert new
+  await supabase.from('note_test_cases').delete().eq('note_id', noteId)
+  if (testCaseIds.length > 0) {
+    await supabase.from('note_test_cases').insert(
+      testCaseIds.map((test_case_id) => ({ note_id: noteId, test_case_id }))
+    )
+  }
+
+  // Return updated note
+  const { data: full, error: fullErr } = await supabase
+    .from('run_notes')
+    .select(NOTE_SELECT)
+    .eq('id', noteId)
     .single()
   if (fullErr) return NextResponse.json({ error: fullErr.message }, { status: 500 })
   return NextResponse.json(full)

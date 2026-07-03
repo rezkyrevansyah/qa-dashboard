@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { FileText, Plus, Search, X, Trash2, ChevronLeft, Filter } from 'lucide-react'
+import { FileText, Plus, Search, X, Trash2, ChevronLeft, Filter, Pencil } from 'lucide-react'
 import { clsx } from 'clsx'
 import { toast } from 'sonner'
 import { Spinner } from '@/components/ui/Spinner'
@@ -40,6 +40,7 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
   const [tab, setTab] = useState<'list' | 'compose'>('list')
 
   // Compose state
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null) // null = create mode
   const [content, setContent] = useState('')
   const [caseSearch, setCaseSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'passed' | 'failed' | 'skipped'>('all')
@@ -67,38 +68,57 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
     setPrevOpen(false)
   }
 
-  function handleClose() {
-    onOpenChange(false)
-    // Reset compose state
-    setTab('list')
+  function resetCompose() {
+    setEditingNoteId(null)
     setContent('')
     setCaseSearch('')
     setStatusFilter('all')
     setAttachedIds(new Set())
   }
 
+  function handleClose() {
+    onOpenChange(false)
+    setTab('list')
+    resetCompose()
+  }
+
+  function handleEditNote(note: RunNote) {
+    setEditingNoteId(note.id)
+    setContent(note.content)
+    setAttachedIds(new Set((note.referenced_cases ?? []).map((r) => r.test_case_id)))
+    setCaseSearch('')
+    setStatusFilter('all')
+    setTab('compose')
+  }
+
   async function handleSave() {
     if (!content.trim()) return
     setSaving(true)
+    const isEdit = editingNoteId !== null
     try {
       const res = await fetch(`/api/notes/${runId}`, {
-        method: 'POST',
+        method: isEdit ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: content.trim(), test_case_ids: [...attachedIds] }),
+        body: JSON.stringify({
+          ...(isEdit ? { noteId: editingNoteId } : {}),
+          content: content.trim(),
+          test_case_ids: [...attachedIds],
+        }),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
         throw new Error(data.error ?? `Gagal menyimpan (${res.status})`)
       }
-      const newNote: RunNote = await res.json()
-      setNotes((prev) => [...prev, newNote])
+      const savedNote: RunNote = await res.json()
+      if (isEdit) {
+        setNotes((prev) => prev.map((n) => n.id === savedNote.id ? savedNote : n))
+      } else {
+        setNotes((prev) => [...prev, savedNote])
+      }
       onNotesChanged(true)
-      setContent('')
-      setAttachedIds(new Set())
-      setCaseSearch('')
-      setStatusFilter('all')
+      resetCompose()
       setTab('list')
-      toast.success('Note disimpan')
+      toast.success(isEdit ? 'Note diperbarui' : 'Note disimpan')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Gagal menyimpan note')
     } finally {
@@ -148,14 +168,14 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
     <Dialog.Root open={open} onOpenChange={handleClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-40" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-xl shadow-xl flex flex-col max-h-[85vh]">
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-3xl bg-gray-900 border border-gray-700 rounded-xl shadow-xl flex flex-col h-[85vh] overflow-hidden">
 
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
             <div className="flex items-center gap-2">
               {tab === 'compose' && (
                 <button
-                  onClick={() => { setTab('list'); setContent(''); setAttachedIds(new Set()); setCaseSearch(''); setStatusFilter('all') }}
+                  onClick={() => { setTab('list'); resetCompose() }}
                   className="text-gray-500 hover:text-gray-300 transition-colors mr-1"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -163,7 +183,7 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
               )}
               <FileText className="w-4 h-4 text-amber-400" />
               <Dialog.Title className="text-sm font-semibold text-gray-100">
-                {tab === 'list' ? 'Notes QA' : 'Tulis Note Baru'}
+                {tab === 'list' ? 'Notes QA' : editingNoteId ? 'Edit Note' : 'Tulis Note Baru'}
               </Dialog.Title>
               <span className="font-mono text-xs text-gray-600">{runId.slice(0, 8)}…</span>
             </div>
@@ -222,14 +242,23 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
                           <span className="text-xs text-gray-600">
                             {new Date(note.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </span>
-                          <button
-                            onClick={() => handleDelete(note.id)}
-                            disabled={deletingId === note.id}
-                            className="flex items-center gap-1 text-xs text-red-400/70 hover:text-red-400 disabled:opacity-40 transition-colors"
-                          >
-                            {deletingId === note.id ? <Spinner size="sm" /> : <Trash2 className="w-3 h-3" />}
-                            Hapus
-                          </button>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => handleEditNote(note)}
+                              className="flex items-center gap-1 text-xs text-blue-400/70 hover:text-blue-400 transition-colors"
+                            >
+                              <Pencil className="w-3 h-3" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(note.id)}
+                              disabled={deletingId === note.id}
+                              className="flex items-center gap-1 text-xs text-red-400/70 hover:text-red-400 disabled:opacity-40 transition-colors"
+                            >
+                              {deletingId === note.id ? <Spinner size="sm" /> : <Trash2 className="w-3 h-3" />}
+                              Hapus
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))
@@ -291,7 +320,7 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
                 </div>
 
                 {/* Right: test case picker — fixed width, independently scrollable */}
-                <div className="w-72 shrink-0 flex flex-col min-h-0">
+                <div className="w-64 shrink-0 flex flex-col min-h-0 overflow-hidden">
                   <div className="px-3 pt-3 pb-2 border-b border-gray-800 shrink-0">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-xs font-semibold text-gray-400">Pilih Test Case</p>
@@ -387,7 +416,7 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
           {tab === 'compose' && (
             <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-800 shrink-0">
               <button
-                onClick={() => { setTab('list'); setContent(''); setAttachedIds(new Set()); setCaseSearch(''); setStatusFilter('all') }}
+                onClick={() => { setTab('list'); resetCompose() }}
                 className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 transition-colors"
               >
                 Batal
@@ -398,7 +427,7 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
                 disabled={!content.trim()}
                 size="sm"
               >
-                Simpan Note
+                {editingNoteId ? 'Simpan Perubahan' : 'Simpan Note'}
               </Button>
             </div>
           )}
