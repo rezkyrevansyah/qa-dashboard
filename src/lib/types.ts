@@ -1,6 +1,6 @@
 export type SuiteType = 'api' | 'ui'
 
-export type RunStatus = 'pending' | 'running' | 'passed' | 'failed' | 'error'
+export type RunStatus = 'pending' | 'running' | 'passed' | 'need_fix' | 'failed' | 'error'
 
 export type TestStatus = 'passed' | 'failed' | 'skipped' | 'pending'
 

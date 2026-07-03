@@ -244,8 +244,19 @@ async function main() {
     return
   }
 
-  // Final status based on actual test counts, not Cypress exit code
-  const finalStatus = totalFailed > 0 ? 'failed' : 'passed'
+  // Final status:
+  // - passed   = all tests passed (no failures)
+  // - need_fix = some passed, some failed
+  // - failed   = all tests failed (passed = 0, failed > 0)
+  // - error    = handled above (spec crash / no specs matched)
+  let finalStatus
+  if (totalFailed === 0) {
+    finalStatus = 'passed'
+  } else if (totalPassed === 0) {
+    finalStatus = 'failed'
+  } else {
+    finalStatus = 'need_fix'
+  }
 
   const { error: updateErr } = await supabase.from('test_runs').update({
     status: finalStatus,

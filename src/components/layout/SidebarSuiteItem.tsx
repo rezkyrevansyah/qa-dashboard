@@ -12,6 +12,7 @@ interface SidebarSuiteItemProps {
 
 const statusDot: Record<string, string> = {
   passed: 'bg-green-400',
+  need_fix: 'bg-amber-400',
   failed: 'bg-red-400',
   running: 'bg-blue-400 animate-pulse',
   pending: 'bg-yellow-400 animate-pulse',

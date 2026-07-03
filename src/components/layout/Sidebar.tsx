@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { clsx } from 'clsx'
@@ -20,17 +20,28 @@ export function Sidebar({ suites }: SidebarProps) {
   const isDashboard = pathname === '/dashboard'
   const [syncing, setSyncing] = useState(false)
   const channelRef = useRef<ReturnType<ReturnType<typeof createClient>['channel']> | null>(null)
+  const pollRef = useRef<NodeJS.Timeout | null>(null)
+  const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null)
+
+  const stopSync = useCallback((supabase: ReturnType<typeof createClient>) => {
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current)
+      channelRef.current = null
+    }
+    if (pollRef.current) {
+      clearInterval(pollRef.current)
+      pollRef.current = null
+    }
+    setSyncing(false)
+  }, [])
 
   async function handleSync() {
     setSyncing(true)
 
-    // Unsubscribe from any previous sync job channel
-    if (channelRef.current) {
-      const supabase = createClient()
-      supabase.removeChannel(channelRef.current)
-      channelRef.current = null
-    }
+    // Clean up any previous subscription/polling
+    if (supabaseRef.current) stopSync(supabaseRef.current)
 
+    let syncJobId: string
     try {
       const res = await fetch('/api/sync', { method: 'POST' })
       if (!res.ok) {
@@ -40,65 +51,72 @@ export function Sidebar({ suites }: SidebarProps) {
         throw new Error(msg)
       }
       const data = await res.json()
+      syncJobId = data.syncJobId
 
       toast.info('Sync dimulai', {
         description: 'GitHub Actions sedang scan folder cypress/e2e/ ...',
       })
-
-      // Subscribe to this specific sync job via Supabase Realtime
-      const supabase = createClient()
-      const channel = supabase
-        .channel(`sync-job-${data.syncJobId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'sync_jobs',
-            filter: `id=eq.${data.syncJobId}`,
-          },
-          (payload) => {
-            const status = payload.new?.status as string
-            const suitesCount = payload.new?.suites_upserted as number | null
-            const specsCount = payload.new?.specs_upserted as number | null
-            const errorMsg = payload.new?.error_message as string | null
-
-            if (status === 'done') {
-              toast.success('Sync selesai', {
-                description: `${suitesCount ?? 0} suite, ${specsCount ?? 0} spec terdaftar.`,
-              })
-              router.refresh()
-              setSyncing(false)
-              supabase.removeChannel(channel)
-              channelRef.current = null
-            } else if (status === 'error') {
-              toast.error('Sync gagal', {
-                description: errorMsg ?? 'Cek GitHub Actions logs untuk detail.',
-              })
-              setSyncing(false)
-              supabase.removeChannel(channel)
-              channelRef.current = null
-            }
-          }
-        )
-        .subscribe()
-
-      channelRef.current = channel
-
-      // Fallback: stop spinner after 5 minutes regardless
-      setTimeout(() => {
-        if (syncing) {
-          setSyncing(false)
-          if (channelRef.current) {
-            supabase.removeChannel(channelRef.current)
-            channelRef.current = null
-          }
-        }
-      }, 5 * 60 * 1000)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Sync failed')
       setSyncing(false)
+      return
     }
+
+    const supabase = createClient()
+    supabaseRef.current = supabase
+
+    function handleSyncResult(status: string, suitesCount: number | null, specsCount: number | null, errorMsg: string | null) {
+      if (status === 'done') {
+        toast.success('Sync selesai', {
+          description: `${suitesCount ?? 0} suite, ${specsCount ?? 0} spec terdaftar.`,
+        })
+        router.refresh()
+        stopSync(supabase)
+      } else if (status === 'error') {
+        toast.error('Sync gagal', {
+          description: errorMsg ?? 'Cek GitHub Actions logs untuk detail.',
+        })
+        stopSync(supabase)
+      }
+    }
+
+    // 1. Realtime subscription (primary)
+    const channel = supabase
+      .channel(`sync-job-${syncJobId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'sync_jobs',
+          filter: `id=eq.${syncJobId}`,
+        },
+        (payload) => {
+          handleSyncResult(
+            payload.new?.status,
+            payload.new?.suites_upserted ?? null,
+            payload.new?.specs_upserted ?? null,
+            payload.new?.error_message ?? null,
+          )
+        }
+      )
+      .subscribe()
+
+    channelRef.current = channel
+
+    // 2. Fallback polling every 5s (in case Realtime misses the update)
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/sync/${syncJobId}`)
+        if (!res.ok) return
+        const job = await res.json()
+        if (job.status === 'done' || job.status === 'error') {
+          handleSyncResult(job.status, job.suites_upserted, job.specs_upserted, job.error_message)
+        }
+      } catch {
+        // network error — keep polling
+      }
+    }, 5000)
   }
 
   return (

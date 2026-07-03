@@ -25,6 +25,7 @@ interface RunHistoryTableProps {
 const STATUS_FILTERS: { label: string; value: RunStatus | 'all' }[] = [
   { label: 'All', value: 'all' },
   { label: 'Passed', value: 'passed' },
+  { label: 'Need Fix', value: 'need_fix' },
   { label: 'Failed', value: 'failed' },
   { label: 'Error', value: 'error' },
   { label: 'Running', value: 'running' },

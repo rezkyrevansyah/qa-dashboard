@@ -5,6 +5,7 @@ type BadgeVariant = RunStatus | TestStatus | 'api' | 'ui'
 
 const variantStyles: Record<BadgeVariant, string> = {
   passed: 'bg-green-950 text-green-400 border-green-800',
+  need_fix: 'bg-amber-950 text-amber-400 border-amber-800',
   failed: 'bg-red-950 text-red-400 border-red-800',
   pending: 'bg-yellow-950 text-yellow-400 border-yellow-800',
   running: 'bg-blue-950 text-blue-400 border-blue-800',

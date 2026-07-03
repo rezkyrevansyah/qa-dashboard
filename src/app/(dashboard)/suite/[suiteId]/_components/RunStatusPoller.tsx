@@ -21,10 +21,12 @@ function showRunToast(run: { status: RunStatus; passed_tests: number; failed_tes
 
   if (status === 'passed') {
     toast.success('Run selesai — Passed', { description: desc })
+  } else if (status === 'need_fix') {
+    toast.warning('Run selesai — Need Fix', { description: desc })
   } else if (status === 'failed') {
     toast.error('Run selesai — Failed', { description: desc })
   } else {
-    toast.warning('Run error', { description: 'Cek GitHub Actions logs untuk detail.' })
+    toast.error('Run error', { description: 'Cek GitHub Actions logs untuk detail.' })
   }
 }
 

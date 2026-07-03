@@ -5,6 +5,7 @@ const labels: Record<RunStatus, string> = {
   pending: 'Pending',
   running: 'Running',
   passed: 'Passed',
+  need_fix: 'Need Fix',
   failed: 'Failed',
   error: 'Error',
 }
