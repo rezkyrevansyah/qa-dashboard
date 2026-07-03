@@ -1,6 +1,6 @@
 // =============================================================================
 // Cypress API Test — service-zaper (Label Taat Zakat)
-// Target: http://service-zaper-53046748745.asia-southeast2.run.app
+// Target: https://service-zaper-53046748745.asia-southeast2.run.app
 //
 // Flow: health → login → validasi negatif → keamanan → RBAC →
 //       CRUD (sector → company → commitment → invoice → receipt →
@@ -47,7 +47,7 @@ function assertEnvelope(body: Record<string, unknown>, expectSuccess: boolean) {
 // BLOK 1 — SMOKE & HEALTH
 // =============================================================================
 describe('[1] Smoke — Health', () => {
-  it('GET /health → 200 dan envelope lengkap', () => {
+  it('API harus merespons 200 dengan field status dan message saat GET /health dipanggil', () => {
     cy.request(`${BASE}/health`).then((res) => {
       expect(res.status).to.eq(200);
       expect(res.body).to.have.property('status');
@@ -60,7 +60,7 @@ describe('[1] Smoke — Health', () => {
 // BLOK 2 — AUTENTIKASI
 // =============================================================================
 describe('[2] Auth — Login semua role', () => {
-  it('POST /auth/login (admin) → 200 dan dapat access_token', () => {
+  it('Admin harus bisa login dan mendapatkan access_token serta refresh_token yang valid', () => {
     cy.request({ method: 'POST', url: `${BASE}/auth/login`, body: CREDS.admin }).then((res) => {
       expect(res.status).to.eq(200);
       expect(res.body.data).to.have.property('access_token').and.not.be.empty;
@@ -69,28 +69,28 @@ describe('[2] Auth — Login semua role', () => {
     });
   });
 
-  it('POST /auth/login (ro) → 200', () => {
+  it('User dengan role RO harus bisa login dan mendapatkan access_token', () => {
     cy.request({ method: 'POST', url: `${BASE}/auth/login`, body: CREDS.ro }).then((res) => {
       expect(res.status).to.eq(200);
       tokenRo = res.body.data.access_token;
     });
   });
 
-  it('POST /auth/login (tim_layanan) → 200', () => {
+  it('User dengan role Tim Layanan harus bisa login dan mendapatkan access_token', () => {
     cy.request({ method: 'POST', url: `${BASE}/auth/login`, body: CREDS.layanan }).then((res) => {
       expect(res.status).to.eq(200);
       tokenLayanan = res.body.data.access_token;
     });
   });
 
-  it('POST /auth/login (kepala_divisi) → 200', () => {
+  it('User dengan role Kepala Divisi harus bisa login dan mendapatkan access_token', () => {
     cy.request({ method: 'POST', url: `${BASE}/auth/login`, body: CREDS.kepala }).then((res) => {
       expect(res.status).to.eq(200);
       tokenKepala = res.body.data.access_token;
     });
   });
 
-  it('GET /auth/me → 200 dan data user valid', () => {
+  it('API harus mengembalikan data profil user yang valid saat GET /auth/me dengan token admin', () => {
     cy.request({ method: 'GET', url: `${BASE}/auth/me`, headers: auth(tokenAdmin) }).then((res) => {
       expect(res.status).to.eq(200);
       expect(res.body.data).to.have.property('email');
@@ -103,13 +103,13 @@ describe('[2] Auth — Login semua role', () => {
 // BLOK 3 — VALIDASI NEGATIF
 // =============================================================================
 describe('[3] Validasi Negatif — Auth', () => {
-  it('POST /auth/login body kosong → 400', () => {
+  it('API harus menolak login dengan 400 saat body request kosong tanpa email dan password', () => {
     cy.request({ method: 'POST', url: `${BASE}/auth/login`, body: {}, failOnStatusCode: false }).then((res) => {
       expect(res.status).to.eq(400);
     });
   });
 
-  it('POST /auth/login tanpa password → 400', () => {
+  it('API harus menolak login dengan 400 saat password tidak disertakan dalam request', () => {
     cy.request({
       method: 'POST', url: `${BASE}/auth/login`,
       body: { email: 'admin@baznas.go.id' }, failOnStatusCode: false,
@@ -118,7 +118,7 @@ describe('[3] Validasi Negatif — Auth', () => {
     });
   });
 
-  it('POST /auth/login password salah → 401', () => {
+  it('API harus menolak login dengan 401 saat password yang dikirim salah', () => {
     cy.request({
       method: 'POST', url: `${BASE}/auth/login`,
       body: { email: 'admin@baznas.go.id', password: 'salah-banget' },
@@ -128,7 +128,7 @@ describe('[3] Validasi Negatif — Auth', () => {
     });
   });
 
-  it('POST /auth/login email tidak terdaftar → 401', () => {
+  it('API harus menolak login dengan 401 saat email yang digunakan tidak terdaftar di sistem', () => {
     cy.request({
       method: 'POST', url: `${BASE}/auth/login`,
       body: { email: 'nobody@nowhere.test', password: 'x' },
@@ -143,7 +143,7 @@ describe('[3] Validasi Negatif — Auth', () => {
 // BLOK 4 — KEAMANAN (SQL Injection & XSS)
 // =============================================================================
 describe('[4] Keamanan — SQL Injection & XSS', () => {
-  it('SQLi pada login body → ditolak 400/401', () => {
+  it('API harus menolak dengan 400 atau 401 saat email login mengandung SQL Injection', () => {
     cy.request({
       method: 'POST', url: `${BASE}/auth/login`,
       body: { email: "a@a.com' OR 1=1 --", password: 'x' },
@@ -153,7 +153,7 @@ describe('[4] Keamanan — SQL Injection & XSS', () => {
     });
   });
 
-  it('XSS pada login body → ditolak 400/401', () => {
+  it('API harus menolak dengan 400 atau 401 saat email login mengandung script XSS', () => {
     cy.request({
       method: 'POST', url: `${BASE}/auth/login`,
       body: { email: '<script>alert(1)</script>', password: 'x' },
@@ -163,7 +163,7 @@ describe('[4] Keamanan — SQL Injection & XSS', () => {
     });
   });
 
-  it('SQLi pada query param /companies → 400', () => {
+  it('API harus menolak dengan 400 saat query param search pada /companies mengandung SQL Injection', () => {
     cy.request({
       method: 'GET', url: `${BASE}/companies?search=test' OR 1=1 --`,
       headers: auth(tokenAdmin), failOnStatusCode: false,
@@ -172,7 +172,7 @@ describe('[4] Keamanan — SQL Injection & XSS', () => {
     });
   });
 
-  it('XSS pada query param /companies → 400', () => {
+  it('API harus menolak dengan 400 saat query param search pada /companies mengandung script XSS', () => {
     cy.request({
       method: 'GET', url: `${BASE}/companies?search=<script>alert(1)</script>`,
       headers: auth(tokenAdmin), failOnStatusCode: false,
@@ -181,7 +181,7 @@ describe('[4] Keamanan — SQL Injection & XSS', () => {
     });
   });
 
-  it('SQLi pada body POST /companies → 400', () => {
+  it('API harus menolak dengan 400 saat body POST /companies mengandung karakter SQL Injection pada field name', () => {
     cy.request({
       method: 'POST', url: `${BASE}/companies`,
       headers: auth(tokenAdmin),
@@ -217,14 +217,14 @@ describe('[5] AuthN — Tanpa Token & Token Invalid', () => {
   ];
 
   protectedEndpoints.forEach(([method, path]) => {
-    it(`${method} ${path} tanpa token → 401`, () => {
+    it(`API harus menolak akses dengan 401 saat ${method} ${path} dipanggil tanpa menyertakan token`, () => {
       cy.request({ method, url: `${BASE}${path}`, failOnStatusCode: false }).then((res) => {
         expect(res.status).to.eq(401);
       });
     });
   });
 
-  it('GET /auth/me dengan token invalid → 401', () => {
+  it('API harus menolak akses dengan 401 saat GET /auth/me menggunakan token yang tidak valid atau sudah dimanipulasi', () => {
     cy.request({
       method: 'GET', url: `${BASE}/auth/me`,
       headers: { Authorization: 'Bearer invalid.token.value' },
@@ -239,7 +239,7 @@ describe('[5] AuthN — Tanpa Token & Token Invalid', () => {
 // BLOK 6 — RBAC: 403 Forbidden
 // =============================================================================
 describe('[6] RBAC — 403 Forbidden', () => {
-  it('tim_layanan POST /companies → 403', () => {
+  it('API harus menolak dengan 403 saat Tim Layanan mencoba membuat company baru yang bukan haknya', () => {
     if (!tokenLayanan) { cy.log('SKIP: tokenLayanan kosong — login layanan gagal di backend'); return; }
     cy.request({
       method: 'POST', url: `${BASE}/companies`,
@@ -251,7 +251,7 @@ describe('[6] RBAC — 403 Forbidden', () => {
     });
   });
 
-  it('tim_layanan DELETE /companies/1 → 403', () => {
+  it('API harus menolak dengan 403 saat Tim Layanan mencoba menghapus company yang bukan haknya', () => {
     if (!tokenLayanan) { cy.log('SKIP: tokenLayanan kosong — login layanan gagal di backend'); return; }
     cy.request({
       method: 'DELETE', url: `${BASE}/companies/1`,
@@ -261,7 +261,7 @@ describe('[6] RBAC — 403 Forbidden', () => {
     });
   });
 
-  it('ro DELETE /companies/1 → 403', () => {
+  it('API harus menolak dengan 403 saat RO mencoba menghapus company yang bukan haknya', () => {
     if (!tokenRo) { cy.log('SKIP: tokenRo kosong — login ro gagal di backend'); return; }
     cy.request({
       method: 'DELETE', url: `${BASE}/companies/1`,
@@ -271,7 +271,7 @@ describe('[6] RBAC — 403 Forbidden', () => {
     });
   });
 
-  it('tim_layanan POST /invoices → 403', () => {
+  it('API harus menolak dengan 403 saat Tim Layanan mencoba membuat invoice yang bukan haknya', () => {
     if (!tokenLayanan) { cy.log('SKIP: tokenLayanan kosong — login layanan gagal di backend'); return; }
     cy.request({
       method: 'POST', url: `${BASE}/invoices`,
@@ -283,7 +283,7 @@ describe('[6] RBAC — 403 Forbidden', () => {
     });
   });
 
-  it('tim_layanan POST /users → 403', () => {
+  it('API harus menolak dengan 403 saat Tim Layanan mencoba membuat user baru yang bukan haknya', () => {
     if (!tokenLayanan) { cy.log('SKIP: tokenLayanan kosong — login layanan gagal di backend'); return; }
     cy.request({
       method: 'POST', url: `${BASE}/users`,
@@ -309,7 +309,7 @@ describe('[7] GET List Utama — 200 & Envelope', () => {
   ];
 
   listEndpoints.forEach((ep) => {
-    it(`GET ${ep} → 200`, () => {
+    it(`API harus mengembalikan 200 dan envelope standar saat GET ${ep} dipanggil dengan token admin`, () => {
       cy.request({ method: 'GET', url: `${BASE}${ep}`, headers: auth(tokenAdmin) }).then((res) => {
         expect(res.status).to.eq(200);
         assertEnvelope(res.body, true);
@@ -317,7 +317,7 @@ describe('[7] GET List Utama — 200 & Envelope', () => {
     });
   });
 
-  it('GET /companies tidak ada → 404', () => {
+  it('API harus mengembalikan 404 saat GET /companies/:id dengan ID yang tidak ada di database', () => {
     cy.request({
       method: 'GET', url: `${BASE}/companies/99999999`,
       headers: auth(tokenAdmin), failOnStatusCode: false,
@@ -326,7 +326,7 @@ describe('[7] GET List Utama — 200 & Envelope', () => {
     });
   });
 
-  it('GET /route-tidak-ada → 404', () => {
+  it('API harus mengembalikan 404 saat endpoint yang dipanggil tidak terdaftar di routing', () => {
     cy.request({
       method: 'GET', url: `${BASE}/tidak-ada-route-xyz`,
       headers: auth(tokenAdmin), failOnStatusCode: false,
@@ -340,7 +340,7 @@ describe('[7] GET List Utama — 200 & Envelope', () => {
 // BLOK 8 — CRUD SECTOR
 // =============================================================================
 describe('[8] CRUD — Sector', () => {
-  it('POST /sectors → 201 dan simpan sectorId', () => {
+  it('Admin harus bisa membuat sector baru dan mendapatkan sectorId dari response', () => {
     cy.request({
       method: 'POST', url: `${BASE}/sectors`,
       headers: auth(tokenAdmin),
@@ -352,13 +352,13 @@ describe('[8] CRUD — Sector', () => {
     });
   });
 
-  it('GET /sectors → 200', () => {
+  it('API harus mengembalikan daftar sector dengan 200 saat GET /sectors dipanggil', () => {
     cy.request({ method: 'GET', url: `${BASE}/sectors`, headers: auth(tokenAdmin) }).then((res) => {
       expect(res.status).to.eq(200);
     });
   });
 
-  it('PUT /sectors/:id → 200', () => {
+  it('Admin harus bisa mengupdate nama sector yang sudah dibuat sebelumnya', () => {
     cy.wrap(null).then(() => {
       if (!sectorId) return;
       cy.request({
@@ -376,7 +376,7 @@ describe('[8] CRUD — Sector', () => {
 // BLOK 9 — CRUD COMPANY
 // =============================================================================
 describe('[9] CRUD — Company', () => {
-  it('POST /companies → 201 dan simpan companyId', () => {
+  it('Admin harus bisa membuat company baru dengan data lengkap dan mendapatkan companyId dari response', () => {
     cy.request({
       method: 'POST', url: `${BASE}/companies`,
       headers: auth(tokenAdmin),
@@ -409,7 +409,7 @@ describe('[9] CRUD — Company', () => {
     });
   });
 
-  it('GET /companies/:id → 200', () => {
+  it('API harus mengembalikan detail company dengan field name saat GET /companies/:id dengan ID yang valid', () => {
     cy.wrap(null).then(() => {
       if (!companyId) return;
       cy.request({ method: 'GET', url: `${BASE}/companies/${companyId}`, headers: auth(tokenAdmin) }).then((res) => {
@@ -419,7 +419,7 @@ describe('[9] CRUD — Company', () => {
     });
   });
 
-  it('PATCH /companies/:id/status → 200', () => {
+  it('Admin harus bisa mengubah status company menjadi existing', () => {
     cy.wrap(null).then(() => {
       if (!companyId) return;
       cy.request({
@@ -432,7 +432,7 @@ describe('[9] CRUD — Company', () => {
     });
   });
 
-  it('GET /companies/search?keyword=Cypress → 200', () => {
+  it('API harus mengembalikan hasil pencarian company dengan 200 saat keyword Cypress dikirim', () => {
     cy.request({
       method: 'GET', url: `${BASE}/companies/search?keyword=Cypress`,
       headers: auth(tokenAdmin),
@@ -446,7 +446,7 @@ describe('[9] CRUD — Company', () => {
 // BLOK 10 — CRUD COMMITMENT
 // =============================================================================
 describe('[10] CRUD — Commitment', () => {
-  it('POST /commitments → 201 dan simpan commitmentId', () => {
+  it('Admin harus bisa membuat commitment untuk company dan mendapatkan commitmentId dari response', () => {
     cy.wrap(null).then(() => {
       if (!companyId) return;
       cy.request({
@@ -468,7 +468,7 @@ describe('[10] CRUD — Commitment', () => {
     });
   });
 
-  it('GET /commitments/:id → 200', () => {
+  it('API harus mengembalikan detail commitment dengan 200 saat GET /commitments/:id dengan ID yang valid', () => {
     cy.wrap(null).then(() => {
       if (!commitmentId) return;
       cy.request({ method: 'GET', url: `${BASE}/commitments/${commitmentId}`, headers: auth(tokenAdmin) }).then((res) => {
@@ -477,7 +477,7 @@ describe('[10] CRUD — Commitment', () => {
     });
   });
 
-  it('POST /commitments body kosong → 400/422', () => {
+  it('API harus menolak pembuatan commitment dengan 400 atau 422 saat body request kosong', () => {
     cy.request({
       method: 'POST', url: `${BASE}/commitments`,
       headers: auth(tokenAdmin),
@@ -492,7 +492,7 @@ describe('[10] CRUD — Commitment', () => {
 // BLOK 11 — CRUD INVOICE
 // =============================================================================
 describe('[11] CRUD — Invoice', () => {
-  it('POST /invoices → 201 dan simpan invoiceId', () => {
+  it('Admin harus bisa membuat invoice untuk company dan mendapatkan invoiceId dari response', () => {
     cy.wrap(null).then(() => {
       if (!companyId) return;
       cy.request({
@@ -517,7 +517,7 @@ describe('[11] CRUD — Invoice', () => {
     });
   });
 
-  it('GET /invoices/:id → 200', () => {
+  it('API harus mengembalikan detail invoice dengan field id saat GET /invoices/:id dengan ID yang valid', () => {
     cy.wrap(null).then(() => {
       if (!invoiceId) return;
       cy.request({ method: 'GET', url: `${BASE}/invoices/${invoiceId}`, headers: auth(tokenAdmin) }).then((res) => {
@@ -527,7 +527,7 @@ describe('[11] CRUD — Invoice', () => {
     });
   });
 
-  it('PATCH /invoices/:id/sign → 200', () => {
+  it('Admin harus bisa menandatangani invoice yang sudah dibuat sebelumnya', () => {
     cy.wrap(null).then(() => {
       if (!invoiceId) return;
       cy.request({
@@ -540,7 +540,7 @@ describe('[11] CRUD — Invoice', () => {
     });
   });
 
-  it('POST /invoices body kosong → 400/422', () => {
+  it('API harus menolak pembuatan invoice dengan 400 atau 422 saat body request kosong', () => {
     cy.request({
       method: 'POST', url: `${BASE}/invoices`,
       headers: auth(tokenAdmin),
@@ -555,7 +555,7 @@ describe('[11] CRUD — Invoice', () => {
 // BLOK 12 — CRUD RECEIPT
 // =============================================================================
 describe('[12] CRUD — Receipt', () => {
-  it('POST /receipts → 201 dan simpan receiptId', () => {
+  it('Admin harus bisa membuat receipt pembayaran untuk company dan mendapatkan receiptId dari response', () => {
     cy.wrap(null).then(() => {
       if (!companyId) return;
       cy.request({
@@ -579,7 +579,7 @@ describe('[12] CRUD — Receipt', () => {
     });
   });
 
-  it('GET /receipts/:id → 200', () => {
+  it('API harus mengembalikan detail receipt dengan 200 saat GET /receipts/:id dengan ID yang valid', () => {
     cy.wrap(null).then(() => {
       if (!receiptId) return;
       cy.request({ method: 'GET', url: `${BASE}/receipts/${receiptId}`, headers: auth(tokenAdmin) }).then((res) => {
@@ -588,7 +588,7 @@ describe('[12] CRUD — Receipt', () => {
     });
   });
 
-  it('PATCH /receipts/:id/sign → 200', () => {
+  it('Admin harus bisa menandatangani receipt yang sudah dibuat sebelumnya', () => {
     cy.wrap(null).then(() => {
       if (!receiptId) return;
       cy.request({
@@ -601,7 +601,7 @@ describe('[12] CRUD — Receipt', () => {
     });
   });
 
-  it('POST /receipts body kosong → 400/422', () => {
+  it('API harus menolak pembuatan receipt dengan 400 atau 422 saat body request kosong', () => {
     cy.request({
       method: 'POST', url: `${BASE}/receipts`,
       headers: auth(tokenAdmin),
@@ -616,7 +616,7 @@ describe('[12] CRUD — Receipt', () => {
 // BLOK 13 — CRUD TRANSACTION
 // =============================================================================
 describe('[13] CRUD — Transaction', () => {
-  it('POST /transactions → 201 dan simpan transactionId', () => {
+  it('Admin harus bisa membuat transaksi zakat untuk company dan mendapatkan transactionId dari response', () => {
     cy.wrap(null).then(() => {
       if (!companyId) return;
       cy.request({
@@ -640,7 +640,7 @@ describe('[13] CRUD — Transaction', () => {
     });
   });
 
-  it('GET /transactions/:id → 200', () => {
+  it('API harus mengembalikan detail transaksi dengan 200 saat GET /transactions/:id dengan ID yang valid', () => {
     cy.wrap(null).then(() => {
       if (!transactionId) return;
       cy.request({ method: 'GET', url: `${BASE}/transactions/${transactionId}`, headers: auth(tokenAdmin) }).then((res) => {
@@ -649,7 +649,7 @@ describe('[13] CRUD — Transaction', () => {
     });
   });
 
-  it('GET /transactions/by-company/:companyId → 200', () => {
+  it('API harus mengembalikan daftar transaksi milik company dengan 200 saat GET /transactions/by-company/:companyId', () => {
     cy.wrap(null).then(() => {
       if (!companyId) return;
       cy.request({ method: 'GET', url: `${BASE}/transactions/by-company/${companyId}`, headers: auth(tokenAdmin) }).then((res) => {
@@ -663,7 +663,7 @@ describe('[13] CRUD — Transaction', () => {
 // BLOK 14 — TAAT ZAKAT CERTIFICATE
 // =============================================================================
 describe('[14] Taat Zakat Certificate', () => {
-  it('POST /taat-zakat/issue → 201 dan simpan certId', () => {
+  it('Admin harus bisa menerbitkan sertifikat taat zakat untuk company dan mendapatkan certId dari response', () => {
     cy.wrap(null).then(() => {
       if (!companyId || !receiptId) return;
       cy.request({
@@ -684,7 +684,7 @@ describe('[14] Taat Zakat Certificate', () => {
     });
   });
 
-  it('GET /taat-zakat/detail/:id → 200', () => {
+  it('API harus mengembalikan detail sertifikat taat zakat dengan 200 saat GET /taat-zakat/detail/:id dengan ID yang valid', () => {
     cy.wrap(null).then(() => {
       if (!certId) return;
       cy.request({ method: 'GET', url: `${BASE}/taat-zakat/detail/${certId}`, headers: auth(tokenAdmin) }).then((res) => {
@@ -693,7 +693,7 @@ describe('[14] Taat Zakat Certificate', () => {
     });
   });
 
-  it('GET /taat-zakat → 200', () => {
+  it('API harus mengembalikan daftar sertifikat taat zakat dengan 200 saat GET /taat-zakat dipanggil', () => {
     cy.request({ method: 'GET', url: `${BASE}/taat-zakat`, headers: auth(tokenAdmin) }).then((res) => {
       expect(res.status).to.eq(200);
     });
@@ -704,25 +704,25 @@ describe('[14] Taat Zakat Certificate', () => {
 // BLOK 15 — NOTIFIKASI & AUDIT LOG
 // =============================================================================
 describe('[15] Notifikasi & Audit Log', () => {
-  it('GET /notifications → 200', () => {
+  it('API harus mengembalikan daftar notifikasi user dengan 200 saat GET /notifications dipanggil', () => {
     cy.request({ method: 'GET', url: `${BASE}/notifications`, headers: auth(tokenAdmin) }).then((res) => {
       expect(res.status).to.eq(200);
     });
   });
 
-  it('GET /notifications/unread-count → 200', () => {
+  it('API harus mengembalikan jumlah notifikasi yang belum dibaca dengan 200 saat GET /notifications/unread-count dipanggil', () => {
     cy.request({ method: 'GET', url: `${BASE}/notifications/unread-count`, headers: auth(tokenAdmin) }).then((res) => {
       expect(res.status).to.eq(200);
     });
   });
 
-  it('PATCH /notifications/read-all → 200', () => {
+  it('API harus berhasil menandai semua notifikasi sebagai sudah dibaca dengan 200 saat PATCH /notifications/read-all dipanggil', () => {
     cy.request({ method: 'PATCH', url: `${BASE}/notifications/read-all`, headers: auth(tokenAdmin) }).then((res) => {
       expect(res.status).to.eq(200);
     });
   });
 
-  it('GET /audit-logs → 200', () => {
+  it('API harus mengembalikan daftar audit log aktivitas sistem dengan 200 saat GET /audit-logs dipanggil', () => {
     cy.request({ method: 'GET', url: `${BASE}/audit-logs`, headers: auth(tokenAdmin) }).then((res) => {
       expect(res.status).to.eq(200);
     });
@@ -735,7 +735,7 @@ describe('[15] Notifikasi & Audit Log', () => {
 describe('[16] Auth — Refresh Token & Logout', () => {
   let refreshToken = '';
 
-  it('POST /auth/login ulang → dapat refresh_token', () => {
+  it('Admin harus bisa login ulang dan mendapatkan refresh_token yang baru', () => {
     cy.request({ method: 'POST', url: `${BASE}/auth/login`, body: CREDS.admin }).then((res) => {
       expect(res.status).to.eq(200);
       refreshToken = res.body.data.refresh_token;
@@ -743,7 +743,7 @@ describe('[16] Auth — Refresh Token & Logout', () => {
     });
   });
 
-  it('POST /auth/refresh-token → 200 dan dapat token baru', () => {
+  it('API harus mengembalikan access_token baru yang valid saat refresh_token dikirim ke POST /auth/refresh-token', () => {
     cy.wrap(null).then(() => {
       if (!refreshToken) return;
       cy.request({
@@ -756,7 +756,7 @@ describe('[16] Auth — Refresh Token & Logout', () => {
     });
   });
 
-  it('POST /auth/logout → 200', () => {
+  it('Admin harus bisa logout dan session berhasil dihapus dari sistem', () => {
     cy.wrap(null).then(() => {
       if (!tokenAdmin) return;
       cy.request({

@@ -6,8 +6,8 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "moduleResolution": "node",
-    "ignoreDeprecations": "5.0"
+    "module": "ESNext",
+    "moduleResolution": "bundler"
   },
   "include": ["./**/*.ts"],
   "exclude": []
