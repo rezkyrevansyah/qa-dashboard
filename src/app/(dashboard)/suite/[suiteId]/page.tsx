@@ -99,6 +99,14 @@ export default async function SuitePage({
         />
       </Card>
 
+      <RunHistoryTable
+        runs={runs as TestRun[]}
+        suiteType={suite.suite_type as 'api' | 'ui'}
+        suiteId={suiteId}
+        suiteName={suite.name}
+        totalCount={totalRunCount}
+      />
+
       {/* Latest run results */}
       {latestResults.length > 0 && (() => {
         const allCases: TestCase[] = latestResults.flatMap((r) => r.cases)
@@ -144,14 +152,6 @@ export default async function SuitePage({
           </>
         )
       })()}
-
-      <RunHistoryTable
-        runs={runs as TestRun[]}
-        suiteType={suite.suite_type as 'api' | 'ui'}
-        suiteId={suiteId}
-        suiteName={suite.name}
-        totalCount={totalRunCount}
-      />
     </div>
   )
 }

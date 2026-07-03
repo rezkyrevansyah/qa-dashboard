@@ -2,8 +2,6 @@ import { createServiceClient } from '@/lib/supabase'
 import { PublicReportsTable } from './_components/PublicReportsTable'
 import type { PublicReportWithDetails } from '@/lib/types'
 
-export const dynamic = 'force-dynamic'
-
 export default async function ReportsPage() {
   const supabase = createServiceClient()
 

@@ -10,7 +10,7 @@ async function getSuites(): Promise<SuiteWithLastRun[]> {
 
   const { data: suites } = await supabase
     .from('suites')
-    .select('*')
+    .select('id, name, path, suite_type, description, created_at, updated_at')
     .order('name')
 
   if (!suites || suites.length === 0) return []
@@ -18,9 +18,10 @@ async function getSuites(): Promise<SuiteWithLastRun[]> {
   const suiteIds = suites.map((s) => s.id)
   const { data: latestRuns } = await supabase
     .from('test_runs')
-    .select('*')
+    .select('id, suite_id, status, created_at, total_tests, passed_tests, failed_tests, skipped_tests')
     .in('suite_id', suiteIds)
     .order('created_at', { ascending: false })
+    .limit(Math.max(suiteIds.length * 2, 20))
 
   const lastRunBySuite: Record<string, unknown> = {}
   for (const run of latestRuns ?? []) {
