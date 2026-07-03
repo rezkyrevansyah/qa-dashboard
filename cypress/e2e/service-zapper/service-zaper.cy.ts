@@ -191,6 +191,77 @@ describe('[4] Keamanan — SQL Injection & XSS', () => {
       expect(res.status).to.eq(400);
     });
   });
+
+  it('API harus menolak dengan 400 atau 404 saat path parameter GET /companies/:id mengandung SQL Injection', () => {
+    cy.request({
+      method: 'GET', url: `${BASE}/companies/1 OR 1=1`,
+      headers: auth(tokenAdmin), failOnStatusCode: false,
+    }).then((res) => {
+      expect(res.status).to.be.oneOf([400, 404]);
+    });
+  });
+
+  it('API harus menolak dengan 400 atau 404 saat path parameter GET /sectors/:id mengandung script XSS', () => {
+    cy.request({
+      method: 'GET', url: `${BASE}/sectors/<script>alert(1)</script>`,
+      headers: auth(tokenAdmin), failOnStatusCode: false,
+    }).then((res) => {
+      expect(res.status).to.be.oneOf([400, 404]);
+    });
+  });
+
+  it('API harus menolak dengan 400 saat body POST /sectors mengandung SQL Injection pada field name', () => {
+    cy.request({
+      method: 'POST', url: `${BASE}/sectors`,
+      headers: auth(tokenAdmin),
+      body: { name: "'; DROP TABLE sectors; --", description: 'test' },
+      failOnStatusCode: false,
+    }).then((res) => {
+      expect(res.status).to.eq(400);
+    });
+  });
+
+  it('API harus menolak dengan 400 saat body POST /sectors mengandung script XSS pada field name', () => {
+    cy.request({
+      method: 'POST', url: `${BASE}/sectors`,
+      headers: auth(tokenAdmin),
+      body: { name: '<script>alert("xss")</script>', description: 'test' },
+      failOnStatusCode: false,
+    }).then((res) => {
+      expect(res.status).to.eq(400);
+    });
+  });
+
+  it('API harus menangani dengan aman saat query param search pada /sectors mengandung SQL Injection', () => {
+    cy.request({
+      method: 'GET', url: `${BASE}/sectors?search=test' OR 1=1--`,
+      headers: auth(tokenAdmin), failOnStatusCode: false,
+    }).then((res) => {
+      expect(res.status).to.be.oneOf([400, 200]);
+    });
+  });
+
+  it('API harus menolak dengan 400 atau 422 saat body POST /users mengandung SQL Injection pada field email', () => {
+    cy.request({
+      method: 'POST', url: `${BASE}/users`,
+      headers: auth(tokenAdmin),
+      body: { name: 'Test', email: "test' OR 1=1 --@test.com", password: 'Test@12345', roles: ['ro'] },
+      failOnStatusCode: false,
+    }).then((res) => {
+      expect(res.status).to.be.oneOf([400, 422]);
+    });
+  });
+
+  it('API harus menolak dengan 400 saat body POST /companies mengandung payload XSS pada field name', () => {
+    cy.request({
+      method: 'POST', url: `${BASE}/companies`,
+      headers: auth(tokenAdmin),
+      body: { name: '<img src=x onerror=alert(1)>', email: 'x@x.com' },
+      failOnStatusCode: false,
+    }).then((res) => {
+      expect(res.status).to.eq(400);
+    });
+  });
 });
 
 // =============================================================================
