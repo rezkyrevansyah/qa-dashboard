@@ -2,7 +2,7 @@ name: Sync Suite Registry
 
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - 'cypress/e2e/**'
   workflow_dispatch:

@@ -22,7 +22,7 @@ export async function triggerWorkflowDispatch(inputs: WorkflowDispatchInputs): P
   const url = `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflow}/dispatches`
 
   const body = {
-    ref: 'main',
+    ref: 'master',
     inputs: {
       suite_name: inputs.suite_name,
       spec_file: inputs.spec_file ?? '',
