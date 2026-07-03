@@ -1,7 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase'
+import { createClient, createServiceClient } from '@/lib/supabase'
 import { requireAuth } from '@/lib/auth'
 import { triggerWorkflowDispatch } from '@/lib/github'
+
+export async function GET(request: NextRequest) {
+  try {
+    await requireAuth()
+  } catch (res) {
+    return res as Response
+  }
+
+  const { searchParams } = request.nextUrl
+  const suiteId = searchParams.get('suiteId')
+  const offset = parseInt(searchParams.get('offset') ?? '0', 10)
+  const limit = Math.min(parseInt(searchParams.get('limit') ?? '20', 10), 50)
+
+  if (!suiteId) {
+    return NextResponse.json({ error: 'suiteId is required' }, { status: 400 })
+  }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('test_runs')
+    .select('*')
+    .eq('suite_id', suiteId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data ?? [])
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await requireAuth()
+  } catch (res) {
+    return res as Response
+  }
+
+  try {
+    const { runIds } = await request.json()
+    if (!Array.isArray(runIds) || runIds.length === 0) {
+      return NextResponse.json({ error: 'runIds array is required' }, { status: 400 })
+    }
+
+    const supabase = createServiceClient()
+    const { error } = await supabase.from('test_runs').delete().in('id', runIds)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true, deleted: runIds.length })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
 
 export async function POST(request: NextRequest) {
   let user

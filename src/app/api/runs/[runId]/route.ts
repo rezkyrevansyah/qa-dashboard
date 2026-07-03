@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase'
+import { createClient, createServiceClient } from '@/lib/supabase'
 import { requireAuth } from '@/lib/auth'
 
 export async function GET(
@@ -26,4 +26,29 @@ export async function GET(
   }
 
   return NextResponse.json(run)
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ runId: string }> }
+) {
+  try {
+    await requireAuth()
+  } catch (res) {
+    return res as Response
+  }
+
+  const { runId } = await params
+  const supabase = createServiceClient()
+
+  const { error } = await supabase
+    .from('test_runs')
+    .delete()
+    .eq('id', runId)
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ ok: true })
 }
