@@ -100,6 +100,7 @@ export interface TrendDataPoint {
   fullDate: string  // "3 Jul 2026" — for range label display
   passed: number
   failed: number
+  skipped: number
 }
 
 export interface PublicReport {

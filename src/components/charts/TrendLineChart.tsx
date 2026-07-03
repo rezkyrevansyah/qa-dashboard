@@ -47,7 +47,8 @@ export function TrendLineChart({ data }: TrendLineChartProps) {
           wrapperStyle={{ fontSize: '12px', color: '#9ca3af', paddingTop: '8px' }}
         />
         <Bar dataKey="passed" name="Passed" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} maxBarSize={40} />
-        <Bar dataKey="failed" name="Failed" stackId="a" fill="#ef4444" radius={[3, 3, 0, 0]} maxBarSize={40} />
+        <Bar dataKey="failed" name="Failed" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} maxBarSize={40} />
+        <Bar dataKey="skipped" name="Skipped" stackId="a" fill="#4b5563" radius={[3, 3, 0, 0]} maxBarSize={40} />
       </ComposedChart>
     </ResponsiveContainer>
   )

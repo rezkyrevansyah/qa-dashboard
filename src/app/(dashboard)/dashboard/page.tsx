@@ -35,25 +35,20 @@ async function getDashboardData() {
     return {
       date: dateStr,
       fullDate,
-      passed: dayRuns.filter((r) => r.status === 'passed').length,
-      failed: dayRuns.filter((r) => r.status === 'failed').length,
+      passed: dayRuns.reduce((sum, r) => sum + (r.passed_tests ?? 0), 0),
+      failed: dayRuns.reduce((sum, r) => sum + (r.failed_tests ?? 0), 0),
+      skipped: dayRuns.reduce((sum, r) => sum + (r.skipped_tests ?? 0), 0),
     }
   })
-
-  // Aggregate totals for donut
-  const totalTestsPassed = allRuns.reduce((sum, r) => sum + (r.passed_tests ?? 0), 0)
-  const totalTestsFailed = allRuns.reduce((sum, r) => sum + (r.failed_tests ?? 0), 0)
-  const totalTestsSkipped = allRuns.reduce((sum, r) => sum + (r.skipped_tests ?? 0), 0)
 
   // Recent 20 runs with suite info
   const recentRuns = allRuns.slice(0, 20)
 
-  return { stats, trendData, totalTestsPassed, totalTestsFailed, totalTestsSkipped, recentRuns }
+  return { stats, trendData, recentRuns }
 }
 
 export default async function DashboardPage() {
-  const { stats, trendData, totalTestsPassed, totalTestsFailed, totalTestsSkipped, recentRuns } =
-    await getDashboardData()
+  const { stats, trendData, recentRuns } = await getDashboardData()
 
   return (
     <div className="space-y-6">
@@ -65,12 +60,7 @@ export default async function DashboardPage() {
       <StatsGrid stats={stats} />
 
       <div className="grid grid-cols-2 gap-4">
-        <TrendChart
-          data={trendData}
-          totalPassed={totalTestsPassed}
-          totalFailed={totalTestsFailed}
-          totalSkipped={totalTestsSkipped}
-        />
+        <TrendChart data={trendData} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
