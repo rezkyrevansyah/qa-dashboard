@@ -50,14 +50,10 @@ export async function POST(request: NextRequest) {
     .maybeSingle()
 
   if (existing) {
-    if (existing.is_active) {
-      // Already active — return same token (idempotent)
-      return NextResponse.json({ token: existing.token, url: `/report/${existing.token}` })
-    }
-    // Exists but inactive — reactivate
+    // Always update created_by so re-publishing reflects current user
     await supabase
       .from('public_reports')
-      .update({ is_active: true, updated_at: new Date().toISOString() })
+      .update({ is_active: true, created_by: user.email ?? null, updated_at: new Date().toISOString() })
       .eq('run_id', runId)
     return NextResponse.json({ token: existing.token, url: `/report/${existing.token}` })
   }
