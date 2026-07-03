@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { RunStatusBadge } from '@/components/ui/RunStatusBadge'
 import { Card } from '@/components/ui/Card'
@@ -521,6 +521,18 @@ export function RunHistoryTable({ runs: initialRuns, suiteType, suiteId, suiteNa
   const [runs, setRuns] = useState<TestRun[]>(initialRuns)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [filterStatus, setFilterStatus] = useState<RunStatus | 'all'>('all')
+
+  useEffect(() => {
+    setRuns((prev) => {
+      const prevIds = new Set(prev.map((r) => r.id))
+      const newRuns = initialRuns.filter((r) => !prevIds.has(r.id))
+      if (newRuns.length === 0) {
+        // update existing runs (e.g. status change)
+        return prev.map((r) => initialRuns.find((ir) => ir.id === r.id) ?? r)
+      }
+      return [...newRuns, ...prev]
+    })
+  }, [initialRuns])
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
   const [deleteAllOpen, setDeleteAllOpen] = useState(false)
   const [bulkDeleting, setBulkDeleting] = useState(false)

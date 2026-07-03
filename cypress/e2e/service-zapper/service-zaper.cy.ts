@@ -143,123 +143,135 @@ describe('[3] Validasi Negatif — Auth', () => {
 // BLOK 4 — KEAMANAN (SQL Injection & XSS)
 // =============================================================================
 describe('[4] Keamanan — SQL Injection & XSS', () => {
-  it('API harus menolak dengan 400 atau 401 saat email login mengandung SQL Injection', () => {
+  it("SQL Injection di POST /auth/login — email: [a@a.com' OR 1=1 --] — harus ditolak 400/401", () => {
+    const payload = "a@a.com' OR 1=1 --"
     cy.request({
       method: 'POST', url: `${BASE}/auth/login`,
-      body: { email: "a@a.com' OR 1=1 --", password: 'x' },
+      body: { email: payload, password: 'x' },
       failOnStatusCode: false,
     }).then((res) => {
-      expect(res.status).to.be.oneOf([400, 401]);
+      expect(res.status, `Payload email="${payload}" — got ${res.status}, expected 400 atau 401`).to.be.oneOf([400, 401])
     });
   });
 
-  it('API harus menolak dengan 400 atau 401 saat email login mengandung script XSS', () => {
+  it('XSS di POST /auth/login — email: [<script>alert(1)</script>] — harus ditolak 400/401', () => {
+    const payload = '<script>alert(1)</script>'
     cy.request({
       method: 'POST', url: `${BASE}/auth/login`,
-      body: { email: '<script>alert(1)</script>', password: 'x' },
+      body: { email: payload, password: 'x' },
       failOnStatusCode: false,
     }).then((res) => {
-      expect(res.status).to.be.oneOf([400, 401]);
+      expect(res.status, `Payload email="${payload}" — got ${res.status}, expected 400 atau 401`).to.be.oneOf([400, 401])
     });
   });
 
-  it('API harus menolak dengan 400 saat query param search pada /companies mengandung SQL Injection', () => {
+  it("SQL Injection di GET /companies?search=[test' OR 1=1 --] — harus ditolak 400", () => {
+    const payload = "test' OR 1=1 --"
     cy.request({
-      method: 'GET', url: `${BASE}/companies?search=test' OR 1=1 --`,
+      method: 'GET', url: `${BASE}/companies?search=${payload}`,
       headers: auth(tokenAdmin), failOnStatusCode: false,
     }).then((res) => {
-      expect(res.status).to.eq(400);
+      expect(res.status, `Payload search="${payload}" — got ${res.status}, expected 400`).to.eq(400)
     });
   });
 
-  it('API harus menolak dengan 400 saat query param search pada /companies mengandung script XSS', () => {
+  it('XSS di GET /companies?search=[<script>alert(1)</script>] — harus ditolak 400', () => {
+    const payload = '<script>alert(1)</script>'
     cy.request({
-      method: 'GET', url: `${BASE}/companies?search=<script>alert(1)</script>`,
+      method: 'GET', url: `${BASE}/companies?search=${payload}`,
       headers: auth(tokenAdmin), failOnStatusCode: false,
     }).then((res) => {
-      expect(res.status).to.eq(400);
+      expect(res.status, `Payload search="${payload}" — got ${res.status}, expected 400`).to.eq(400)
     });
   });
 
-  it('API harus menolak dengan 400 saat body POST /companies mengandung karakter SQL Injection pada field name', () => {
+  it('SQL Injection di POST /companies — body name: ["; DROP TABLE users; --] — harus ditolak 400', () => {
+    const payload = '"; DROP TABLE users; --'
     cy.request({
       method: 'POST', url: `${BASE}/companies`,
       headers: auth(tokenAdmin),
-      body: { name: '"; DROP TABLE users; --', email: 'x@x.com' },
+      body: { name: payload, email: 'x@x.com' },
       failOnStatusCode: false,
     }).then((res) => {
-      expect(res.status).to.eq(400);
+      expect(res.status, `Payload body.name="${payload}" — got ${res.status}, expected 400`).to.eq(400)
     });
   });
 
-  it('API harus menolak dengan 400 atau 404 saat path parameter GET /companies/:id mengandung SQL Injection', () => {
+  it("SQL Injection di GET /companies/:id — path: [1 OR 1=1] — harus ditolak 400/404", () => {
+    const payload = '1 OR 1=1'
     cy.request({
-      method: 'GET', url: `${BASE}/companies/1 OR 1=1`,
+      method: 'GET', url: `${BASE}/companies/${payload}`,
       headers: auth(tokenAdmin), failOnStatusCode: false,
     }).then((res) => {
-      expect(res.status).to.be.oneOf([400, 404]);
+      expect(res.status, `Payload path id="${payload}" — got ${res.status}, expected 400 atau 404`).to.be.oneOf([400, 404])
     });
   });
 
-  it('API harus menolak dengan 400 atau 404 saat path parameter GET /sectors/:id mengandung script XSS', () => {
+  it('XSS di GET /sectors/:id — path: [<script>alert(1)</script>] — harus ditolak 400/404', () => {
+    const payload = '<script>alert(1)</script>'
     cy.request({
-      method: 'GET', url: `${BASE}/sectors/<script>alert(1)</script>`,
+      method: 'GET', url: `${BASE}/sectors/${payload}`,
       headers: auth(tokenAdmin), failOnStatusCode: false,
     }).then((res) => {
-      expect(res.status).to.be.oneOf([400, 404]);
+      expect(res.status, `Payload path id="${payload}" — got ${res.status}, expected 400 atau 404`).to.be.oneOf([400, 404])
     });
   });
 
-  it('API harus menolak dengan 400 saat body POST /sectors mengandung SQL Injection pada field name', () => {
+  it("SQL Injection di POST /sectors — body name: ['; DROP TABLE sectors; --] — harus ditolak 400", () => {
+    const payload = "'; DROP TABLE sectors; --"
     cy.request({
       method: 'POST', url: `${BASE}/sectors`,
       headers: auth(tokenAdmin),
-      body: { name: "'; DROP TABLE sectors; --", description: 'test' },
+      body: { name: payload, description: 'test' },
       failOnStatusCode: false,
     }).then((res) => {
-      expect(res.status).to.eq(400);
+      expect(res.status, `Payload body.name="${payload}" — got ${res.status}, expected 400`).to.eq(400)
     });
   });
 
-  it('API harus menolak dengan 400 saat body POST /sectors mengandung script XSS pada field name', () => {
+  it('XSS di POST /sectors — body name: [<script>alert("xss")</script>] — harus ditolak 400', () => {
+    const payload = '<script>alert("xss")</script>'
     cy.request({
       method: 'POST', url: `${BASE}/sectors`,
       headers: auth(tokenAdmin),
-      body: { name: '<script>alert("xss")</script>', description: 'test' },
+      body: { name: payload, description: 'test' },
       failOnStatusCode: false,
     }).then((res) => {
-      expect(res.status).to.eq(400);
+      expect(res.status, `Payload body.name="${payload}" — got ${res.status}, expected 400`).to.eq(400)
     });
   });
 
-  it('API harus menangani dengan aman saat query param search pada /sectors mengandung SQL Injection', () => {
+  it("SQL Injection di GET /sectors?search=[test' OR 1=1--] — harus ditangani aman (400/200)", () => {
+    const payload = "test' OR 1=1--"
     cy.request({
-      method: 'GET', url: `${BASE}/sectors?search=test' OR 1=1--`,
+      method: 'GET', url: `${BASE}/sectors?search=${payload}`,
       headers: auth(tokenAdmin), failOnStatusCode: false,
     }).then((res) => {
-      expect(res.status).to.be.oneOf([400, 200]);
+      expect(res.status, `Payload search="${payload}" — got ${res.status}, expected 400 atau 200`).to.be.oneOf([400, 200])
     });
   });
 
-  it('API harus menolak dengan 400 atau 422 saat body POST /users mengandung SQL Injection pada field email', () => {
+  it("SQL Injection di POST /users — body email: [test' OR 1=1 --@test.com] — harus ditolak 400/422", () => {
+    const payload = "test' OR 1=1 --@test.com"
     cy.request({
       method: 'POST', url: `${BASE}/users`,
       headers: auth(tokenAdmin),
-      body: { name: 'Test', email: "test' OR 1=1 --@test.com", password: 'Test@12345', roles: ['ro'] },
+      body: { name: 'Test', email: payload, password: 'Test@12345', roles: ['ro'] },
       failOnStatusCode: false,
     }).then((res) => {
-      expect(res.status).to.be.oneOf([400, 422]);
+      expect(res.status, `Payload body.email="${payload}" — got ${res.status}, expected 400 atau 422`).to.be.oneOf([400, 422])
     });
   });
 
-  it('API harus menolak dengan 400 saat body POST /companies mengandung payload XSS pada field name', () => {
+  it('XSS di POST /companies — body name: [<img src=x onerror=alert(1)>] — harus ditolak 400', () => {
+    const payload = '<img src=x onerror=alert(1)>'
     cy.request({
       method: 'POST', url: `${BASE}/companies`,
       headers: auth(tokenAdmin),
-      body: { name: '<img src=x onerror=alert(1)>', email: 'x@x.com' },
+      body: { name: payload, email: 'x@x.com' },
       failOnStatusCode: false,
     }).then((res) => {
-      expect(res.status).to.eq(400);
+      expect(res.status, `Payload body.name="${payload}" — got ${res.status}, expected 400`).to.eq(400)
     });
   });
 });
