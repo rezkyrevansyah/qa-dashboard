@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { TopBar } from '@/components/layout/TopBar'
+import { getLogoUrl } from '@/lib/settings'
 import type { SuiteWithLastRun } from '@/lib/types'
 
 async function getSuites(): Promise<SuiteWithLastRun[]> {
@@ -43,11 +44,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login')
   }
 
-  const suites = await getSuites()
+  const [suites, logoUrl] = await Promise.all([getSuites(), getLogoUrl()])
 
   return (
     <div className="flex h-screen bg-gray-950 overflow-hidden">
-      <Sidebar suites={suites} />
+      <Sidebar suites={suites} logoUrl={logoUrl} />
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopBar />
         <main className="flex-1 overflow-y-auto p-6">

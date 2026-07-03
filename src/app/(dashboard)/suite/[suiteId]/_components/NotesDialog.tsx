@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { FileText, Plus, Search, X, Trash2, ChevronLeft } from 'lucide-react'
+import { FileText, Plus, Search, X, Trash2, ChevronLeft, Filter } from 'lucide-react'
 import { clsx } from 'clsx'
 import { toast } from 'sonner'
 import { Spinner } from '@/components/ui/Spinner'
@@ -42,6 +42,7 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
   // Compose state
   const [content, setContent] = useState('')
   const [caseSearch, setCaseSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'passed' | 'failed' | 'skipped'>('all')
   const [attachedIds, setAttachedIds] = useState<Set<string>>(new Set())
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -72,6 +73,7 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
     setTab('list')
     setContent('')
     setCaseSearch('')
+    setStatusFilter('all')
     setAttachedIds(new Set())
   }
 
@@ -94,6 +96,7 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
       setContent('')
       setAttachedIds(new Set())
       setCaseSearch('')
+      setStatusFilter('all')
       setTab('list')
       toast.success('Note disimpan')
     } catch (err) {
@@ -131,12 +134,15 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
     })
   }
 
-  const filteredCases = allCases.filter((c) =>
-    c.title.toLowerCase().includes(caseSearch.toLowerCase()) ||
-    (c.http_url ?? '').toLowerCase().includes(caseSearch.toLowerCase())
-  )
+  const filteredCases = useMemo(() => allCases.filter((c) => {
+    const matchSearch =
+      c.title.toLowerCase().includes(caseSearch.toLowerCase()) ||
+      (c.http_url ?? '').toLowerCase().includes(caseSearch.toLowerCase())
+    const matchStatus = statusFilter === 'all' || c.status === statusFilter
+    return matchSearch && matchStatus
+  }), [allCases, caseSearch, statusFilter])
 
-  const attachedCases = allCases.filter((c) => attachedIds.has(c.id))
+  const attachedCases = useMemo(() => allCases.filter((c) => attachedIds.has(c.id)), [allCases, attachedIds])
 
   return (
     <Dialog.Root open={open} onOpenChange={handleClose}>
@@ -149,7 +155,7 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
             <div className="flex items-center gap-2">
               {tab === 'compose' && (
                 <button
-                  onClick={() => { setTab('list'); setContent(''); setAttachedIds(new Set()); setCaseSearch('') }}
+                  onClick={() => { setTab('list'); setContent(''); setAttachedIds(new Set()); setCaseSearch(''); setStatusFilter('all') }}
                   className="text-gray-500 hover:text-gray-300 transition-colors mr-1"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -169,7 +175,7 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-hidden">
             {tab === 'list' ? (
               /* ── List View ── */
               <div className="flex flex-col h-full">
@@ -243,10 +249,10 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
               </div>
             ) : (
               /* ── Compose View ── */
-              <div className="flex h-full divide-x divide-gray-800">
+              <div className="flex divide-x divide-gray-800 h-full min-h-0">
 
                 {/* Left: textarea + attached chips */}
-                <div className="flex-1 flex flex-col p-4 min-w-0">
+                <div className="flex-1 flex flex-col p-4 min-w-0 overflow-y-auto">
                   <textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
@@ -260,9 +266,9 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
                   </div>
 
                   {/* Attached chips */}
-                  {attachedCases.length > 0 && (
+                  {attachedCases.length > 0 ? (
                     <div className="space-y-1.5">
-                      <p className="text-xs text-gray-600">Test case terpilih:</p>
+                      <p className="text-xs text-gray-500">Test case terpilih ({attachedCases.length}):</p>
                       <div className="flex flex-wrap gap-1.5">
                         {attachedCases.map((tc) => (
                           <button
@@ -279,30 +285,57 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
                         ))}
                       </div>
                     </div>
-                  )}
-
-                  {attachedCases.length === 0 && (
+                  ) : (
                     <p className="text-xs text-gray-600 italic">Pilih test case dari panel kanan untuk mereferensikannya di note ini.</p>
                   )}
                 </div>
 
-                {/* Right: test case picker */}
-                <div className="w-72 shrink-0 flex flex-col">
-                  <div className="px-3 pt-3 pb-2 border-b border-gray-800">
-                    <p className="text-xs font-semibold text-gray-400 mb-2">Pilih Test Case</p>
-                    <div className="relative">
+                {/* Right: test case picker — fixed width, independently scrollable */}
+                <div className="w-72 shrink-0 flex flex-col min-h-0">
+                  <div className="px-3 pt-3 pb-2 border-b border-gray-800 shrink-0">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold text-gray-400">Pilih Test Case</p>
+                      {attachedIds.size > 0 && (
+                        <span className="text-[10px] bg-amber-900/40 text-amber-400 border border-amber-800/50 px-1.5 py-0.5 rounded-full">
+                          {attachedIds.size} dipilih
+                        </span>
+                      )}
+                    </div>
+                    {/* Search */}
+                    <div className="relative mb-2">
                       <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" />
                       <input
                         type="text"
                         value={caseSearch}
                         onChange={(e) => setCaseSearch(e.target.value)}
-                        placeholder="Cari test case..."
+                        placeholder="Cari judul atau URL..."
                         className="w-full pl-8 pr-3 py-1.5 bg-gray-950 border border-gray-700 rounded-lg text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-gray-500"
                       />
                     </div>
+                    {/* Status filter chips */}
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <Filter className="w-3 h-3 text-gray-600 shrink-0" />
+                      {(['all', 'failed', 'passed', 'skipped'] as const).map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => setStatusFilter(s)}
+                          className={clsx(
+                            'px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors',
+                            statusFilter === s
+                              ? s === 'all' ? 'bg-gray-700 text-gray-200 border-gray-600'
+                                : s === 'failed' ? 'bg-red-900/60 text-red-300 border-red-700'
+                                : s === 'passed' ? 'bg-green-900/60 text-green-300 border-green-700'
+                                : 'bg-gray-700 text-gray-400 border-gray-600'
+                              : 'bg-transparent text-gray-600 border-gray-800 hover:border-gray-700 hover:text-gray-400'
+                          )}
+                        >
+                          {s === 'all' ? 'Semua' : s.charAt(0).toUpperCase() + s.slice(1)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto py-1">
+                  <div className="flex-1 overflow-y-auto py-1 min-h-0">
                     {!casesFetched ? (
                       <div className="flex items-center gap-2 justify-center py-6 text-xs text-gray-500">
                         <Spinner size="sm" /> Memuat…
@@ -354,7 +387,7 @@ export function NotesDialog({ open, onOpenChange, runId, onNotesChanged }: Notes
           {tab === 'compose' && (
             <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-800 shrink-0">
               <button
-                onClick={() => { setTab('list'); setContent(''); setAttachedIds(new Set()); setCaseSearch('') }}
+                onClick={() => { setTab('list'); setContent(''); setAttachedIds(new Set()); setCaseSearch(''); setStatusFilter('all') }}
                 className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 transition-colors"
               >
                 Batal

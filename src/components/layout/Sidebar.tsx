@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { clsx } from 'clsx'
-import { LayoutDashboard, RefreshCw, CheckCircle, FileText, RotateCcw } from 'lucide-react'
+import { LayoutDashboard, RefreshCw, CheckCircle, FileText, RotateCcw, Settings } from 'lucide-react'
 import { toast } from 'sonner'
 import { SidebarSuiteItem } from './SidebarSuiteItem'
 import type { SuiteWithLastRun } from '@/lib/types'
@@ -12,13 +12,15 @@ import { createClient } from '../../../utils/supabase/client'
 
 interface SidebarProps {
   suites: SuiteWithLastRun[]
+  logoUrl: string
 }
 
-export function Sidebar({ suites }: SidebarProps) {
+export function Sidebar({ suites, logoUrl }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const isDashboard = pathname === '/dashboard'
   const isReports = pathname === '/reports'
+  const isSettings = pathname === '/settings'
   const [syncing, setSyncing] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -133,7 +135,7 @@ export function Sidebar({ suites }: SidebarProps) {
       <div className="flex items-center gap-2.5 px-4 py-4 border-b border-gray-800">
         <div className="w-8 h-8 bg-white rounded-lg shrink-0 p-1">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo_baznas.png" alt="BAZNAS" className="w-full h-full object-contain" />
+          <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
         </div>
         <span className="font-bold text-white text-sm tracking-wide flex-1">QA Dashboard</span>
         <button
@@ -173,6 +175,20 @@ export function Sidebar({ suites }: SidebarProps) {
         >
           <FileText className="w-4 h-4 shrink-0" />
           <span className="font-medium">Reports</span>
+        </Link>
+
+        {/* Settings link */}
+        <Link
+          href="/settings"
+          className={clsx(
+            'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
+            isSettings
+              ? 'bg-blue-600/20 text-blue-300 border border-blue-600/30'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+          )}
+        >
+          <Settings className="w-4 h-4 shrink-0" />
+          <span className="font-medium">Settings</span>
         </Link>
 
         {/* Suites section */}

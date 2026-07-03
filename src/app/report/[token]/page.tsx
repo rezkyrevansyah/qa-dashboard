@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/lib/supabase'
+import { getLogoUrl } from '@/lib/settings'
 import { RunStatusBadge } from '@/components/ui/RunStatusBadge'
 import { AlertTriangle, CheckCircle, FileText, User } from 'lucide-react'
 import type { RunStatus, SuiteType } from '@/lib/types'
@@ -167,7 +168,7 @@ function PublicNoteCard({ note }: { note: PublicNote }) {
 
 export default async function PublicReportPage({ params }: PageProps) {
   const { token } = await params
-  const data = await getPublicReport(token)
+  const [data, logoUrl] = await Promise.all([getPublicReport(token), getLogoUrl()])
 
   if (data.status === 'not_found') {
     return (
@@ -201,7 +202,7 @@ export default async function PublicReportPage({ params }: PageProps) {
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
           <div className="w-8 h-8 bg-white rounded-lg shrink-0 p-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo_baznas.png" alt="BAZNAS" className="w-full h-full object-contain" />
+            <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
           </div>
           <span className="font-bold text-white text-sm tracking-wide">QA Dashboard</span>
           <span className="text-gray-600 text-sm ml-2">· Public Report</span>
