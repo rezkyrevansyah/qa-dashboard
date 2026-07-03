@@ -118,10 +118,22 @@ export interface PublicReportWithDetails extends PublicReport {
   suite: Suite
 }
 
+export interface NoteTestCaseRef {
+  test_case_id: string
+  test_cases: {
+    id: string
+    title: string
+    status: TestStatus
+    http_method: HttpMethod | null
+    http_url: string | null
+  }
+}
+
 export interface RunNote {
   id: string
   run_id: string
   content: string
   created_at: string
   updated_at: string
+  referenced_cases?: NoteTestCaseRef[]
 }

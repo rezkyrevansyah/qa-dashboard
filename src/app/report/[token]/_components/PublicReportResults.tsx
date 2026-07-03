@@ -30,6 +30,7 @@ interface PublicReportResultsProps {
   suiteType: SuiteType
   suiteId: string
   runId: string
+  highlightedCaseIds?: Set<string>
 }
 
 const STATUS_OPTIONS = [
@@ -60,7 +61,7 @@ function toCardResult(result: PublicTestResult, suiteId: string, runId: string):
   } as unknown as TestResultWithCases
 }
 
-export function PublicReportResults({ results, suiteType, suiteId, runId }: PublicReportResultsProps) {
+export function PublicReportResults({ results, suiteType, suiteId, runId, highlightedCaseIds }: PublicReportResultsProps) {
   const [statusFilter, setStatusFilter] = useState<'all' | 'passed' | 'failed'>('all')
   const [methodFilter, setMethodFilter] = useState<string>('all')
   const [search, setSearch] = useState('')
@@ -228,8 +229,8 @@ export function PublicReportResults({ results, suiteType, suiteId, runId }: Publ
           filtered.map((result) => {
             const cardResult = toCardResult(result, suiteId, runId)
             return suiteType === 'api'
-              ? <ApiTestResultCard key={result.id} result={cardResult} />
-              : <UiTestResultCard key={result.id} result={cardResult} />
+              ? <ApiTestResultCard key={result.id} result={cardResult} highlightedCaseIds={highlightedCaseIds} />
+              : <UiTestResultCard key={result.id} result={cardResult} highlightedCaseIds={highlightedCaseIds} />
           })
         )}
       </div>

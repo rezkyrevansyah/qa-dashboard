@@ -97,7 +97,7 @@ CREATE TABLE public.public_reports (
 );
 CREATE TABLE public.run_notes (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  run_id uuid NOT NULL UNIQUE,
+  run_id uuid NOT NULL,
   content text NOT NULL,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),

@@ -8,10 +8,12 @@ import type { TestResultWithCases } from '@/lib/types'
 
 interface UiTestResultCardProps {
   result: TestResultWithCases
+  highlightedCaseIds?: Set<string>
 }
 
-export function UiTestResultCard({ result }: UiTestResultCardProps) {
-  const [expanded, setExpanded] = useState(false)
+export function UiTestResultCard({ result, highlightedCaseIds }: UiTestResultCardProps) {
+  const isHighlighted = highlightedCaseIds && result.cases.some((c) => highlightedCaseIds.has(c.id))
+  const [expanded, setExpanded] = useState(() => !!isHighlighted)
 
   return (
     <div className="border border-gray-800 rounded-xl overflow-hidden">
@@ -35,7 +37,7 @@ export function UiTestResultCard({ result }: UiTestResultCardProps) {
       {expanded && (
         <div className="border-t border-gray-800 px-4 py-3 space-y-2">
           {result.cases.map((tc) => (
-            <div key={tc.id}>
+            <div key={tc.id} id={`tc-${tc.id}`}>
               {tc.screenshot_url && (
                 <div className="mb-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}

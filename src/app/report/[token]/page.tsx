@@ -28,6 +28,24 @@ interface PublicReportSuite {
   description: string | null
 }
 
+interface PublicNoteRef {
+  test_case_id: string
+  test_cases: {
+    id: string
+    title: string
+    status: string
+    http_method: string | null
+    http_url: string | null
+  }
+}
+
+interface PublicNote {
+  id: string
+  content: string
+  updated_at: string
+  referenced_cases: PublicNoteRef[]
+}
+
 async function getPublicReport(token: string) {
   const supabase = createServiceClient()
 
@@ -40,7 +58,7 @@ async function getPublicReport(token: string) {
   if (reportErr || !report) return { status: 'not_found' as const }
   if (!report.is_active) return { status: 'expired' as const }
 
-  const [{ data: suite }, { data: run }, { data: results }, { data: note }] = await Promise.all([
+  const [{ data: suite }, { data: run }, { data: results }, { data: notes }] = await Promise.all([
     supabase
       .from('suites')
       .select('id, name, suite_type, description')
@@ -62,10 +80,21 @@ async function getPublicReport(token: string) {
       .order('created_at', { ascending: true }),
     supabase
       .from('run_notes')
-      .select('content, updated_at')
+      .select(`
+        id, content, updated_at,
+        referenced_cases:note_test_cases(
+          test_case_id,
+          test_cases(id, title, status, http_method, http_url)
+        )
+      `)
       .eq('run_id', report.run_id)
-      .maybeSingle(),
+      .order('created_at', { ascending: true }),
   ])
+
+  const noteList = (notes ?? []) as unknown as PublicNote[]
+  const highlightedCaseIds = new Set(
+    noteList.flatMap((n) => (n.referenced_cases ?? []).map((r) => r.test_case_id))
+  )
 
   return {
     status: 'ok' as const,
@@ -77,7 +106,8 @@ async function getPublicReport(token: string) {
     suite: suite as PublicReportSuite,
     run: run as PublicReportRun,
     results: (results ?? []) as unknown as PublicTestResult[],
-    note: note as { content: string; updated_at: string } | null,
+    notes: noteList,
+    highlightedCaseIds,
   }
 }
 
@@ -93,6 +123,46 @@ function formatDate(iso: string | null) {
     day: 'numeric', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   })
+}
+
+const statusDot: Record<string, string> = {
+  passed: 'bg-green-400',
+  failed: 'bg-red-400',
+  skipped: 'bg-gray-500',
+  pending: 'bg-yellow-400',
+}
+
+function PublicNoteCard({ note }: { note: PublicNote }) {
+  return (
+    <div className="bg-amber-950/30 border border-amber-800/50 rounded-xl p-4">
+      <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{note.content}</p>
+
+      {note.referenced_cases && note.referenced_cases.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-amber-800/30">
+          <p className="text-xs text-amber-500/70 mb-2">Referensi test case:</p>
+          <div className="flex flex-wrap gap-1.5">
+            {note.referenced_cases.map((ref) => (
+              <a
+                key={ref.test_case_id}
+                href={`#tc-${ref.test_case_id}`}
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-900/20 border border-amber-800/40 text-xs text-amber-300 hover:bg-amber-900/40 transition-colors"
+              >
+                {ref.test_cases.http_method && (
+                  <span className="font-mono font-bold text-amber-400/80 text-[10px]">
+                    {ref.test_cases.http_method}
+                  </span>
+                )}
+                <span className="truncate max-w-[200px]">{ref.test_cases.title}</span>
+                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusDot[ref.test_cases.status] ?? 'bg-gray-500'}`} />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p className="text-xs text-gray-600 mt-3">Diperbarui {formatDate(note.updated_at)}</p>
+    </div>
+  )
 }
 
 export default async function PublicReportPage({ params }: PageProps) {
@@ -119,7 +189,7 @@ export default async function PublicReportPage({ params }: PageProps) {
     )
   }
 
-  const { suite, run, results, report, note } = data
+  const { suite, run, results, report, notes, highlightedCaseIds } = data
   const passRate = run.total_tests > 0
     ? Math.round((run.passed_tests / run.total_tests) * 100)
     : 0
@@ -208,14 +278,15 @@ export default async function PublicReportPage({ params }: PageProps) {
         </div>
 
         {/* QA Notes */}
-        {note && (
-          <div className="bg-amber-950/30 border border-amber-800/50 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
+        {notes.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-amber-400 shrink-0" />
               <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">Notes dari QA</span>
             </div>
-            <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{note.content}</p>
-            <p className="text-xs text-gray-600 mt-3">Diperbarui {formatDate(note.updated_at)}</p>
+            {notes.map((note) => (
+              <PublicNoteCard key={note.id} note={note} />
+            ))}
           </div>
         )}
 
@@ -226,6 +297,7 @@ export default async function PublicReportPage({ params }: PageProps) {
             suiteType={suite.suite_type}
             suiteId={suite.id}
             runId={run.id}
+            highlightedCaseIds={highlightedCaseIds}
           />
         )}
       </main>

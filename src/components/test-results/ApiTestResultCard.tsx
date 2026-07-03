@@ -23,10 +23,12 @@ function statusCodeColor(code: number) {
 
 interface ApiTestResultCardProps {
   result: TestResultWithCases
+  highlightedCaseIds?: Set<string>
 }
 
-export function ApiTestResultCard({ result }: ApiTestResultCardProps) {
-  const [expanded, setExpanded] = useState(false)
+export function ApiTestResultCard({ result, highlightedCaseIds }: ApiTestResultCardProps) {
+  const isHighlighted = highlightedCaseIds && result.cases.some((c) => highlightedCaseIds.has(c.id))
+  const [expanded, setExpanded] = useState(() => !!isHighlighted)
 
   return (
     <div className="border border-gray-800 rounded-xl overflow-hidden">
@@ -50,7 +52,7 @@ export function ApiTestResultCard({ result }: ApiTestResultCardProps) {
       {expanded && (
         <div className="border-t border-gray-800 divide-y divide-gray-800/50">
           {result.cases.map((tc) => (
-            <div key={tc.id} className="px-4 py-2">
+            <div key={tc.id} id={`tc-${tc.id}`} className="px-4 py-2">
               {/* Show HTTP method badge if present */}
               {tc.http_method && (
                 <div className="flex items-center gap-2 mb-1.5">
