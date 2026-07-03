@@ -88,7 +88,7 @@ async function getPublicReport(token: string) {
     report: { token: report.token, created_at: report.created_at },
     suite: suite as PublicReportSuite,
     run: run as PublicReportRun,
-    results: (results ?? []) as PublicTestResult[],
+    results: (results ?? []) as unknown as PublicTestResult[],
   }
 }
 
@@ -229,14 +229,21 @@ export default async function PublicReportPage({ params }: PageProps) {
               // Cast to shape expected by cards
               const cardResult = {
                 ...result,
-                spec: result.spec,
-                cases: result.cases.map((c) => ({ ...c, error_stack: null, http_duration_ms: null, screenshot_url: null })),
+                spec: { ...result.spec, suite_id: suite.id, created_at: '', updated_at: '' },
+                cases: result.cases.map((c) => ({
+                  ...c,
+                  result_id: result.id,
+                  error_stack: null,
+                  http_duration_ms: null,
+                  screenshot_url: null,
+                  created_at: '',
+                })),
                 error_message: null,
                 error_stack: null,
                 created_at: '',
                 run_id: run.id,
                 spec_id: result.spec.id,
-              }
+              } as unknown as import('@/lib/types').TestResultWithCases
               return suite.suite_type === 'api'
                 ? <ApiTestResultCard key={result.id} result={cardResult} />
                 : <UiTestResultCard key={result.id} result={cardResult} />

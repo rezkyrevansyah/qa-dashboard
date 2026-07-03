@@ -90,6 +90,7 @@ export interface TestResultWithCases extends TestResult {
 export interface DashboardStats {
   total_runs: number
   total_passed: number
+  total_need_fix: number
   total_failed: number
   pass_rate: number
 }

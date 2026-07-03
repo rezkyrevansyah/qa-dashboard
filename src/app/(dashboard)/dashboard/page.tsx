@@ -17,11 +17,12 @@ async function getDashboardData() {
 
   const allRuns = runs ?? []
   const totalRuns = allRuns.length
-  const totalPassed = allRuns.filter((r) => r.status === 'passed' || r.status === 'need_fix').length
+  const totalPassed = allRuns.filter((r) => r.status === 'passed').length
+  const totalNeedFix = allRuns.filter((r) => r.status === 'need_fix').length
   const totalFailed = allRuns.filter((r) => r.status === 'failed').length
   const passRate = totalRuns === 0 ? 0 : Math.round((totalPassed / totalRuns) * 100)
 
-  const stats: DashboardStats = { total_runs: totalRuns, total_passed: totalPassed, total_failed: totalFailed, pass_rate: passRate }
+  const stats: DashboardStats = { total_runs: totalRuns, total_passed: totalPassed, total_need_fix: totalNeedFix, total_failed: totalFailed, pass_rate: passRate }
 
   // Trend data: last 14 days
   const today = new Date()
@@ -32,7 +33,7 @@ async function getDashboardData() {
     const dayRuns = allRuns.filter((r) => r.created_at.startsWith(dayStr))
     return {
       date: dateStr,
-      passed: dayRuns.filter((r) => r.status === 'passed' || r.status === 'need_fix').length,
+      passed: dayRuns.filter((r) => r.status === 'passed').length,
       failed: dayRuns.filter((r) => r.status === 'failed').length,
     }
   })
