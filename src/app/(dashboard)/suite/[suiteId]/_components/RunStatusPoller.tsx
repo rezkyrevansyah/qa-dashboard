@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { createClient } from '../../../../../../utils/supabase/client'
 import type { RunStatus } from '@/lib/types'
 
@@ -12,6 +13,21 @@ interface RunStatusPollerProps {
 
 const TERMINAL_STATUSES: RunStatus[] = ['passed', 'failed', 'error']
 
+function showRunToast(run: { status: RunStatus; passed_tests: number; failed_tests: number; total_tests: number }) {
+  const { status, passed_tests, failed_tests, total_tests } = run
+  const desc = total_tests > 0
+    ? `${passed_tests} passed, ${failed_tests} failed dari ${total_tests} test`
+    : undefined
+
+  if (status === 'passed') {
+    toast.success('Run selesai — Passed', { description: desc })
+  } else if (status === 'failed') {
+    toast.error('Run selesai — Failed', { description: desc })
+  } else {
+    toast.warning('Run error', { description: 'Cek GitHub Actions logs untuk detail.' })
+  }
+}
+
 export function RunStatusPoller({ suiteId, activeRunIds }: RunStatusPollerProps) {
   const router = useRouter()
   const pollingRef = useRef<NodeJS.Timeout | null>(null)
@@ -21,7 +37,7 @@ export function RunStatusPoller({ suiteId, activeRunIds }: RunStatusPollerProps)
 
     const supabase = createClient()
 
-    // Supabase Realtime subscription
+    // Supabase Realtime subscription — listens for any test_run update in this suite
     const channel = supabase
       .channel(`suite-runs-${suiteId}`)
       .on(
@@ -35,19 +51,21 @@ export function RunStatusPoller({ suiteId, activeRunIds }: RunStatusPollerProps)
         (payload) => {
           const status = payload.new?.status as RunStatus
           if (TERMINAL_STATUSES.includes(status)) {
+            showRunToast(payload.new as Parameters<typeof showRunToast>[0])
             router.refresh()
           }
         }
       )
       .subscribe()
 
-    // Fallback polling every 5s
+    // Fallback polling every 5s in case Realtime misses an update
     pollingRef.current = setInterval(async () => {
       for (const runId of activeRunIds) {
         const res = await fetch(`/api/runs/${runId}`)
         if (res.ok) {
           const run = await res.json()
           if (TERMINAL_STATUSES.includes(run.status as RunStatus)) {
+            showRunToast(run)
             router.refresh()
             break
           }

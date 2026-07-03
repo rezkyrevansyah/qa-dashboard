@@ -6,6 +6,12 @@ on:
     paths:
       - 'cypress/e2e/**'
   workflow_dispatch:
+    inputs:
+      sync_job_id:
+        description: 'sync_jobs.id (UUID) from QA Dashboard — used to update sync status in Supabase'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   sync:
@@ -26,4 +32,5 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SYNC_JOB_ID: ${{ inputs.sync_job_id }}
         run: node scripts/sync-suites.mjs

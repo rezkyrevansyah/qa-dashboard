@@ -55,26 +55,47 @@ function parseHttpFromTitle(title) {
 }
 
 async function main() {
+  console.log(`[report-results] RUN_ID=${RUN_ID} SUITE_NAME=${SUITE_NAME}`)
+
   if (!existsSync(resultsPath)) {
     await markError('No results file found — Cypress may have failed to launch.')
     return
   }
 
+  const rawJson = readFileSync(resultsPath, 'utf8')
+  console.log(`[report-results] results.json size: ${rawJson.length} bytes`)
+  console.log(`[report-results] results.json preview: ${rawJson.slice(0, 300)}`)
+
   let report
   try {
-    report = JSON.parse(readFileSync(resultsPath, 'utf8'))
+    report = JSON.parse(rawJson)
   } catch (err) {
     await markError(`Failed to parse results.json: ${err.message}`)
+    return
+  }
+
+  // Handle CypressFailedRunResult (Cypress failed to launch, no runs[])
+  if (report.status === 'failed' && report.failures != null) {
+    await markError(`Cypress failed to launch: ${report.message}`)
     return
   }
 
   // after:run format: report.runs[] — one entry per spec file
   const specRuns = report.runs ?? []
 
+  console.log(`[report-results] specRuns count: ${specRuns.length}`)
+
   if (specRuns.length === 0) {
     await markError('results.json has no run entries — Cypress may have found no specs.')
     return
   }
+
+  // Debug: print all specs in DB for this suite
+  const { data: allSpecs } = await supabase
+    .from('specs')
+    .select('id, path')
+    .ilike('path', `${SUITE_NAME}/%`)
+  console.log(`[report-results] Specs in DB for suite "${SUITE_NAME}":`, JSON.stringify(allSpecs))
 
   let totalPassed = 0
   let totalFailed = 0
@@ -92,21 +113,25 @@ async function main() {
     // Flexible lookup: exact path first, then fallback to filename match
     let specRow = null
 
-    const { data: exactMatch } = await supabase
+    const { data: exactMatch, error: exactErr } = await supabase
       .from('specs')
       .select('id, path')
       .eq('path', exactPath)
       .maybeSingle()
 
+    if (exactErr) console.error('  exact lookup error:', exactErr.message)
+
     if (exactMatch) {
       specRow = exactMatch
       console.log(`  ✓ Found by exact path: ${exactMatch.path}`)
     } else {
-      const { data: fuzzyMatch } = await supabase
+      const { data: fuzzyMatch, error: fuzzyErr } = await supabase
         .from('specs')
         .select('id, path')
         .ilike('path', `%${specFileName}`)
         .maybeSingle()
+
+      if (fuzzyErr) console.error('  fuzzy lookup error:', fuzzyErr.message)
 
       if (fuzzyMatch) {
         specRow = fuzzyMatch
@@ -115,7 +140,8 @@ async function main() {
     }
 
     if (!specRow) {
-      console.warn(`  ✗ Spec not found in DB: ${exactPath} — skipping`)
+      console.warn(`  ✗ Spec not found in DB: "${exactPath}" — skipping`)
+      console.warn(`    Hint: Run "Sync Suite Registry" workflow to register specs, then re-run.`)
       continue
     }
 
@@ -124,6 +150,8 @@ async function main() {
     const failed = stats.failures ?? 0
     const pending = stats.pending ?? 0
     const duration = stats.duration ?? 0
+
+    console.log(`  stats: passes=${passed} failures=${failed} pending=${pending} duration=${duration}ms`)
 
     // Insert test_result row for this spec
     const { data: resultRow, error: resultErr } = await supabase
@@ -142,8 +170,11 @@ async function main() {
       continue
     }
 
+    console.log(`  ✓ test_result inserted: ${resultRow.id}`)
+
     // after:run tests[]: { title: string[], state: 'passed'|'failed'|'pending', duration, displayError }
     const tests = specRun.tests ?? []
+    console.log(`  Inserting ${tests.length} test cases...`)
 
     for (const test of tests) {
       const fullTitle = Array.isArray(test.title) ? test.title.join(' ') : (test.title ?? '')
@@ -153,12 +184,11 @@ async function main() {
 
       const httpMeta = parseHttpFromTitle(fullTitle)
 
-      // error info: test.displayError is a string, test.attempts[].error has message+stack
-      const lastAttempt = test.attempts?.[test.attempts.length - 1]
-      const errorMessage = lastAttempt?.error?.message ?? null
-      const errorStack = lastAttempt?.error?.stack ?? null
+      // displayError is the error string; attempts[last].state gives final attempt state
+      const errorMessage = test.displayError ?? null
+      const errorStack = null // not available in after:run TestResult
 
-      await supabase.from('test_cases').insert({
+      const { error: caseErr } = await supabase.from('test_cases').insert({
         result_id: resultRow.id,
         title: fullTitle,
         status: caseStatus,
@@ -169,6 +199,10 @@ async function main() {
         http_url: httpMeta.http_url,
         http_status: httpMeta.http_status,
       })
+
+      if (caseErr) {
+        console.error(`    ✗ test_case insert error for "${fullTitle}":`, caseErr.message)
+      }
     }
 
     totalPassed += passed
