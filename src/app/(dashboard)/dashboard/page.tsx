@@ -17,7 +17,7 @@ async function getDashboardData() {
 
   const allRuns = runs ?? []
   const totalRuns = allRuns.length
-  const totalPassed = allRuns.filter((r) => r.status === 'passed').length
+  const totalPassed = allRuns.filter((r) => r.status === 'passed' || r.status === 'need_fix').length
   const totalFailed = allRuns.filter((r) => r.status === 'failed').length
   const passRate = totalRuns === 0 ? 0 : Math.round((totalPassed / totalRuns) * 100)
 
@@ -32,7 +32,7 @@ async function getDashboardData() {
     const dayRuns = allRuns.filter((r) => r.created_at.startsWith(dayStr))
     return {
       date: dateStr,
-      passed: dayRuns.filter((r) => r.status === 'passed').length,
+      passed: dayRuns.filter((r) => r.status === 'passed' || r.status === 'need_fix').length,
       failed: dayRuns.filter((r) => r.status === 'failed').length,
     }
   })
