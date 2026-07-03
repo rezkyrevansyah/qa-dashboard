@@ -123,6 +123,7 @@ function formatDate(iso: string | null) {
   return new Date(iso).toLocaleString('id-ID', {
     day: 'numeric', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
+    timeZone: 'Asia/Jakarta',
   })
 }
 
