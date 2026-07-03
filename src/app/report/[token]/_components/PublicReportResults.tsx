@@ -75,23 +75,36 @@ export function PublicReportResults({ results, suiteType, suiteId, runId }: Publ
     return METHOD_ORDER.filter((m) => methods.has(m))
   }, [results])
 
+  // Filter cases within each result, then drop results with 0 matching cases
   const filtered = useMemo(() => {
-    return results.filter((result) => {
-      if (statusFilter !== 'all') {
-        if (!result.cases.some((c) => c.status === statusFilter)) return false
-      }
-      if (methodFilter !== 'all') {
-        if (!result.cases.some((c) => c.http_method === methodFilter)) return false
-      }
-      if (search.trim()) {
-        const q = search.toLowerCase()
-        const matchSpec = result.spec.name.toLowerCase().includes(q)
-        const matchCase = result.cases.some((c) => c.title.toLowerCase().includes(q))
-        if (!matchSpec && !matchCase) return false
-      }
-      return true
-    })
+    const q = search.trim().toLowerCase()
+    return results
+      .map((result) => {
+        let cases = result.cases
+        if (statusFilter !== 'all') {
+          cases = cases.filter((c) => c.status === statusFilter)
+        }
+        if (methodFilter !== 'all') {
+          cases = cases.filter((c) => c.http_method === methodFilter)
+        }
+        if (q) {
+          const specMatch = result.spec.name.toLowerCase().includes(q)
+          cases = specMatch ? cases : cases.filter((c) => c.title.toLowerCase().includes(q))
+        }
+        return { ...result, cases }
+      })
+      .filter((result) => result.cases.length > 0)
   }, [results, statusFilter, methodFilter, search])
+
+  // Total matched cases count for the counter
+  const totalMatchedCases = useMemo(
+    () => filtered.reduce((sum, r) => sum + r.cases.length, 0),
+    [filtered]
+  )
+  const totalCases = useMemo(
+    () => results.reduce((sum, r) => sum + r.cases.length, 0),
+    [results]
+  )
 
   const hasActiveFilter = statusFilter !== 'all' || methodFilter !== 'all' || search.trim() !== ''
 
@@ -190,8 +203,8 @@ export function PublicReportResults({ results, suiteType, suiteId, runId }: Publ
           {/* Count */}
           <span className="text-xs text-gray-600 ml-auto">
             {hasActiveFilter
-              ? `Menampilkan ${filtered.length} dari ${results.length} spec`
-              : `${results.length} spec`}
+              ? `${totalMatchedCases} dari ${totalCases} test case`
+              : `${totalCases} test case`}
           </span>
         </div>
       </div>

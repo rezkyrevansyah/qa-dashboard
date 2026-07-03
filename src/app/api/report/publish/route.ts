@@ -6,8 +6,9 @@ import type { RunStatus } from '@/lib/types'
 const COMPLETED_STATUSES: RunStatus[] = ['passed', 'need_fix', 'failed']
 
 export async function POST(request: NextRequest) {
+  let user: Awaited<ReturnType<typeof requireAuth>>
   try {
-    await requireAuth()
+    user = await requireAuth()
   } catch (res) {
     return res as Response
   }
@@ -68,6 +69,7 @@ export async function POST(request: NextRequest) {
     run_id: runId,
     suite_id: run.suite_id,
     is_active: true,
+    created_by: user.email ?? null,
   })
 
   if (insertErr) {

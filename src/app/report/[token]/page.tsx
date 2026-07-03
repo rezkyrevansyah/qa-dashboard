@@ -1,6 +1,6 @@
 import { createServiceClient } from '@/lib/supabase'
 import { RunStatusBadge } from '@/components/ui/RunStatusBadge'
-import { AlertTriangle, CheckCircle, ExternalLink, FileText } from 'lucide-react'
+import { AlertTriangle, CheckCircle, FileText, User } from 'lucide-react'
 import type { RunStatus, SuiteType } from '@/lib/types'
 import { PublicReportResults } from './_components/PublicReportResults'
 import type { PublicTestResult } from './_components/PublicReportResults'
@@ -19,8 +19,6 @@ interface PublicReportRun {
   duration_ms: number | null
   started_at: string | null
   completed_at: string | null
-  github_run_url: string | null
-  triggered_by: string | null
 }
 
 interface PublicReportSuite {
@@ -35,7 +33,7 @@ async function getPublicReport(token: string) {
 
   const { data: report, error: reportErr } = await supabase
     .from('public_reports')
-    .select('id, token, run_id, suite_id, is_active, created_at')
+    .select('id, token, run_id, suite_id, is_active, created_at, created_by')
     .eq('token', token)
     .maybeSingle()
 
@@ -50,7 +48,7 @@ async function getPublicReport(token: string) {
       .single(),
     supabase
       .from('test_runs')
-      .select('id, status, total_tests, passed_tests, failed_tests, skipped_tests, duration_ms, started_at, completed_at, github_run_url, triggered_by')
+      .select('id, status, total_tests, passed_tests, failed_tests, skipped_tests, duration_ms, started_at, completed_at')
       .eq('id', report.run_id)
       .single(),
     supabase
@@ -71,7 +69,11 @@ async function getPublicReport(token: string) {
 
   return {
     status: 'ok' as const,
-    report: { token: report.token, created_at: report.created_at },
+    report: {
+      token: report.token,
+      created_at: report.created_at,
+      created_by: report.created_by as string | null,
+    },
     suite: suite as PublicReportSuite,
     run: run as PublicReportRun,
     results: (results ?? []) as unknown as PublicTestResult[],
@@ -184,8 +186,8 @@ export default async function PublicReportPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-gray-800">
-            <div className="flex items-center gap-3 flex-1 min-w-0 mr-4">
+          <div className="flex items-center pt-2 border-t border-gray-800">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               <span className="text-sm font-semibold text-gray-300 whitespace-nowrap">{passRate}% pass rate</span>
               <div className="flex-1 bg-gray-800 rounded-full h-2 min-w-[60px]">
                 <div
@@ -194,18 +196,16 @@ export default async function PublicReportPage({ params }: PageProps) {
                 />
               </div>
             </div>
-            {run.github_run_url && (
-              <a
-                href={run.github_run_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors shrink-0"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                GitHub Actions
-              </a>
-            )}
           </div>
+
+          {/* Reporter */}
+          {report.created_by && (
+            <div className="flex items-center gap-2 pt-2 border-t border-gray-800">
+              <User className="w-3.5 h-3.5 text-gray-600 shrink-0" />
+              <span className="text-xs text-gray-500">Reported by</span>
+              <span className="text-xs text-gray-300 font-medium">{report.created_by}</span>
+            </div>
+          )}
         </div>
 
         {/* QA Notes */}
