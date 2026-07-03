@@ -23,8 +23,13 @@ export function RunAllButton({ suiteId, suiteName }: RunAllButtonProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ suiteId, suiteName }),
       })
+      if (!res.ok) {
+        const text = await res.text()
+        let msg = `Server error ${res.status}`
+        try { msg = JSON.parse(text).error ?? msg } catch { msg = text || msg }
+        throw new Error(msg)
+      }
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Failed to trigger run')
       toast.success('Test run triggered', { description: `Run ID: ${data.runId.slice(0, 8)}…` })
       router.refresh()
     } catch (err) {
