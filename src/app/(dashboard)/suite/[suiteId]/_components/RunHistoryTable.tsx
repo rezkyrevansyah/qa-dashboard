@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { ApiTestResultCard } from '@/components/test-results/ApiTestResultCard'
 import { UiTestResultCard } from '@/components/test-results/UiTestResultCard'
 import { formatDistanceToNow } from 'date-fns'
-import { ExternalLink, ChevronDown, ChevronRight, Trash2, RotateCcw } from 'lucide-react'
+import { ExternalLink, ChevronDown, ChevronRight, Trash2, RotateCcw, Share2 } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { toast } from 'sonner'
 import type { TestRun, TestResultWithCases, RunStatus } from '@/lib/types'
@@ -97,6 +97,8 @@ function RunRow({
   const [results, setResults] = useState<TestResultWithCases[] | null>(null)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [rerunning, setRerunning] = useState(false)
+  const [publishing, setPublishing] = useState(false)
+  const [publishedToken, setPublishedToken] = useState<string | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -169,7 +171,43 @@ function RunRow({
     }
   }
 
-  const canExpand = run.status === 'passed' || run.status === 'failed' || run.status === 'error'
+  async function handlePublish() {
+    if (publishedToken) {
+      // Already published — copy link
+      const url = `${window.location.origin}/report/${publishedToken}`
+      navigator.clipboard.writeText(url).then(() => {
+        toast.success('Link disalin!')
+      })
+      return
+    }
+    setPublishing(true)
+    try {
+      const res = await fetch('/api/report/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ runId: run.id }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error ?? `Publish failed (${res.status})`)
+      }
+      const data = await res.json()
+      setPublishedToken(data.token)
+      const url = `${window.location.origin}${data.url}`
+      navigator.clipboard.writeText(url).then(() => {
+        toast.success('Report dipublikasikan! Link disalin.', {
+          description: url,
+        })
+      })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Gagal publish report')
+    } finally {
+      setPublishing(false)
+    }
+  }
+
+  const canPublish = run.status === 'passed' || run.status === 'need_fix' || run.status === 'failed'
+  const canExpand = run.status === 'passed' || run.status === 'failed' || run.status === 'error' || run.status === 'need_fix'
 
   return (
     <>
@@ -257,6 +295,20 @@ function RunRow({
             >
               {rerunning ? <Spinner size="sm" /> : <RotateCcw className="w-3.5 h-3.5" />}
             </button>
+            {canPublish && (
+              <button
+                onClick={handlePublish}
+                disabled={publishing}
+                title={publishedToken ? 'Salin link report' : 'Publish report'}
+                className={`p-1 transition-colors disabled:opacity-40 ${
+                  publishedToken
+                    ? 'text-green-400 hover:text-green-300'
+                    : 'text-gray-600 hover:text-blue-400'
+                }`}
+              >
+                {publishing ? <Spinner size="sm" /> : <Share2 className="w-3.5 h-3.5" />}
+              </button>
+            )}
             <button
               onClick={() => setDeleteOpen(true)}
               title="Hapus run ini"

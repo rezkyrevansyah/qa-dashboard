@@ -99,3 +99,18 @@ export interface TrendDataPoint {
   passed: number
   failed: number
 }
+
+export interface PublicReport {
+  id: string
+  token: string
+  run_id: string
+  suite_id: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface PublicReportWithDetails extends PublicReport {
+  run: TestRun
+  suite: Suite
+}

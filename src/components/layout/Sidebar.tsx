@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { clsx } from 'clsx'
-import { LayoutDashboard, RefreshCw, CheckCircle } from 'lucide-react'
+import { LayoutDashboard, RefreshCw, CheckCircle, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { SidebarSuiteItem } from './SidebarSuiteItem'
 import type { SuiteWithLastRun } from '@/lib/types'
@@ -18,6 +18,7 @@ export function Sidebar({ suites }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const isDashboard = pathname === '/dashboard'
+  const isReports = pathname === '/reports'
   const [syncing, setSyncing] = useState(false)
   const channelRef = useRef<ReturnType<ReturnType<typeof createClient>['channel']> | null>(null)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
@@ -145,6 +146,20 @@ export function Sidebar({ suites }: SidebarProps) {
         >
           <LayoutDashboard className="w-4 h-4 shrink-0" />
           <span className="font-medium">Overview</span>
+        </Link>
+
+        {/* Reports link */}
+        <Link
+          href="/reports"
+          className={clsx(
+            'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
+            isReports
+              ? 'bg-blue-600/20 text-blue-300 border border-blue-600/30'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+          )}
+        >
+          <FileText className="w-4 h-4 shrink-0" />
+          <span className="font-medium">Reports</span>
         </Link>
 
         {/* Suites section */}
