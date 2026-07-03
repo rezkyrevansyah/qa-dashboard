@@ -145,6 +145,11 @@ async function main() {
       continue
     }
 
+    // Log spec-level error (Cypress crash before tests run)
+    if (specRun.error) {
+      console.error(`  ⚠ Spec-level error: ${specRun.error}`)
+    }
+
     const stats = specRun.stats ?? {}
     const passed = stats.passes ?? 0
     const failed = stats.failures ?? 0
@@ -175,6 +180,22 @@ async function main() {
     // after:run tests[]: { title: string[], state: 'passed'|'failed'|'pending', duration, displayError }
     const tests = specRun.tests ?? []
     console.log(`  Inserting ${tests.length} test cases...`)
+
+    // If spec crashed before tests ran, insert a synthetic error case
+    if (tests.length === 0 && failed > 0 && specRun.error) {
+      await supabase.from('test_cases').insert({
+        result_id: resultRow.id,
+        title: `[Spec Error] ${specFileName}`,
+        status: 'failed',
+        duration_ms: null,
+        error_message: specRun.error,
+        error_stack: null,
+        http_method: null,
+        http_url: null,
+        http_status: null,
+      })
+      console.log(`  ✓ Inserted synthetic error case: ${specRun.error.slice(0, 100)}`)
+    }
 
     for (const test of tests) {
       const fullTitle = Array.isArray(test.title) ? test.title.join(' ') : (test.title ?? '')
