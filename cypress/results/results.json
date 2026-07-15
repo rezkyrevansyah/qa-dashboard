@@ -5,10 +5,13 @@
   "config": {
     "supportFile": "D:\\projects\\qa-dashboard\\cypress\\support\\e2e.ts",
     "specPattern": "cypress/e2e/**/*.cy.ts",
+    "viewportWidth": 1280,
+    "viewportHeight": 900,
     "projectRoot": "D:\\projects\\qa-dashboard",
     "projectName": "qa-dashboard",
     "configFile": "cypress.config.ts",
     "isTextTerminal": true,
+    "reporter": "spec",
     "animationDistanceThreshold": 5,
     "arch": "x64",
     "baseUrl": null,
@@ -43,11 +46,10 @@
     "numTestsKeptInMemory": 0,
     "platform": "win32",
     "pageLoadTimeout": 60000,
-    "port": 56966,
+    "port": 60224,
     "projectId": null,
     "redirectionLimit": 20,
     "removeSRIAttributes": false,
-    "reporter": "spec",
     "reporterOptions": null,
     "requestTimeout": 5000,
     "resolvedNodePath": "C:\\Program Files\\nodejs\\node.exe",
@@ -68,8 +70,6 @@
     "video": false,
     "videoCompression": false,
     "videosFolder": "D:\\projects\\qa-dashboard\\cypress\\videos",
-    "viewportHeight": 660,
-    "viewportWidth": 1000,
     "waitForAnimations": true,
     "watchForFileChanges": false,
     "browsers": [
@@ -77,19 +77,19 @@
         "channel": "stable",
         "displayName": "Chrome",
         "family": "chromium",
-        "majorVersion": "149",
+        "majorVersion": "150",
         "name": "chrome",
         "path": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-        "version": "149.0.7827.201"
+        "version": "150.0.7871.101"
       },
       {
         "channel": "stable",
         "displayName": "Edge",
         "family": "chromium",
-        "majorVersion": "149",
+        "majorVersion": "150",
         "name": "edge",
         "path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-        "version": "149.0.4022.98"
+        "version": "150.0.4078.65"
       },
       {
         "channel": "stable",
@@ -110,7 +110,7 @@
     "cypressInternalEnv": "production"
   },
   "cypressVersion": "15.18.0",
-  "endedTestsAt": "2026-07-03T06:28:23.040Z",
+  "endedTestsAt": "2026-07-14T05:34:41.261Z",
   "osName": "win32",
   "osVersion": "Microsoft Windows 11 Pro - 10.0.26200",
   "runs": [
@@ -118,41 +118,41 @@
       "error": null,
       "reporter": "spec",
       "reporterStats": {
-        "suites": 16,
-        "tests": 87,
-        "passes": 86,
+        "suites": 1,
+        "tests": 27,
+        "passes": 26,
         "pending": 0,
         "failures": 1,
-        "start": "2026-07-03T06:28:06.617Z",
-        "end": "2026-07-03T06:28:23.048Z",
-        "duration": 16431
+        "start": "2026-07-14T03:42:14.500Z",
+        "end": "2026-07-14T05:34:41.280Z",
+        "duration": 6746780
       },
       "screenshots": [
         {
           "height": 720,
           "name": null,
-          "path": "D:\\projects\\qa-dashboard\\cypress\\screenshots\\service-zaper.cy.ts\\[9] CRUD — Company -- POST companies → 201 dan simpan companyId (failed).png",
-          "takenAt": "2026-07-03T06:28:18.869Z",
+          "path": "D:\\projects\\qa-dashboard\\cypress\\screenshots\\companies-validation.cy.ts\\[Companies][B] Field Validation — Negative Cases -- TC-COMPANY-001-B04 — Tipe Perusahaan invalid ditembak langsung ke API (form selalu punya default Umum) (failed).png",
+          "takenAt": "2026-07-14T03:42:47.172Z",
           "width": 1280
         }
       ],
       "spec": {
-        "absolute": "D:/projects/qa-dashboard/cypress/e2e/service-zapper/service-zaper.cy.ts",
+        "absolute": "D:/projects/qa-dashboard/cypress/e2e/aplikasi-zapper/companies-validation.cy.ts",
         "fileExtension": ".ts",
-        "fileName": "service-zaper",
-        "name": "service-zaper.cy.ts",
-        "relative": "cypress\\e2e\\service-zapper\\service-zaper.cy.ts"
+        "fileName": "companies-validation",
+        "name": "companies-validation.cy.ts",
+        "relative": "cypress\\e2e\\aplikasi-zapper\\companies-validation.cy.ts"
       },
       "stats": {
-        "duration": 16448,
-        "endedAt": "2026-07-03T06:28:23.040Z",
+        "duration": 6746769,
+        "endedAt": "2026-07-14T05:34:41.261Z",
         "failures": 1,
-        "passes": 86,
+        "passes": 26,
         "pending": 0,
         "skipped": 0,
-        "startedAt": "2026-07-03T06:28:06.592Z",
-        "suites": 16,
-        "tests": 87
+        "startedAt": "2026-07-14T03:42:14.492Z",
+        "suites": 1,
+        "tests": 27
       },
       "tests": [
         {
@@ -162,11 +162,11 @@
             }
           ],
           "displayError": null,
-          "duration": 347,
+          "duration": 8831,
           "state": "passed",
           "title": [
-            "[1] Smoke — Health",
-            "GET /health → 200 dan envelope lengkap"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B01 — Nama Perusahaan kosong"
           ]
         },
         {
@@ -176,11 +176,11 @@
             }
           ],
           "displayError": null,
-          "duration": 578,
+          "duration": 7486,
           "state": "passed",
           "title": [
-            "[2] Auth — Login semua role",
-            "POST /auth/login (admin) → 200 dan dapat access_token"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B02 — Nama Perusahaan 1 karakter (min 2)"
           ]
         },
         {
@@ -190,795 +190,11 @@
             }
           ],
           "displayError": null,
-          "duration": 563,
+          "duration": 11896,
           "state": "passed",
           "title": [
-            "[2] Auth — Login semua role",
-            "POST /auth/login (ro) → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 553,
-          "state": "passed",
-          "title": [
-            "[2] Auth — Login semua role",
-            "POST /auth/login (tim_layanan) → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 550,
-          "state": "passed",
-          "title": [
-            "[2] Auth — Login semua role",
-            "POST /auth/login (kepala_divisi) → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 114,
-          "state": "passed",
-          "title": [
-            "[2] Auth — Login semua role",
-            "GET /auth/me → 200 dan data user valid"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 105,
-          "state": "passed",
-          "title": [
-            "[3] Validasi Negatif — Auth",
-            "POST /auth/login body kosong → 400"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 99,
-          "state": "passed",
-          "title": [
-            "[3] Validasi Negatif — Auth",
-            "POST /auth/login tanpa password → 400"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 531,
-          "state": "passed",
-          "title": [
-            "[3] Validasi Negatif — Auth",
-            "POST /auth/login password salah → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 111,
-          "state": "passed",
-          "title": [
-            "[3] Validasi Negatif — Auth",
-            "POST /auth/login email tidak terdaftar → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 131,
-          "state": "passed",
-          "title": [
-            "[4] Keamanan — SQL Injection & XSS",
-            "SQLi pada login body → ditolak 400/401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 119,
-          "state": "passed",
-          "title": [
-            "[4] Keamanan — SQL Injection & XSS",
-            "XSS pada login body → ditolak 400/401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 110,
-          "state": "passed",
-          "title": [
-            "[4] Keamanan — SQL Injection & XSS",
-            "SQLi pada query param /companies → 400"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 104,
-          "state": "passed",
-          "title": [
-            "[4] Keamanan — SQL Injection & XSS",
-            "XSS pada query param /companies → 400"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 101,
-          "state": "passed",
-          "title": [
-            "[4] Keamanan — SQL Injection & XSS",
-            "SQLi pada body POST /companies → 400"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 131,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /auth/me tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 127,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /users/ tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 147,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /companies/ tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 121,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /sectors/ tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 105,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /targets/ tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 108,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /commitments/ tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 110,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /invoices/ tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 121,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /receipts/ tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 120,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /transactions/ tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 116,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /taat-zakat/ tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 138,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /bsz-claims/ tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 125,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /audit-logs/ tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 126,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /notifications/ tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 115,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /dashboard/zakat-stats tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 126,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /dashboard/anniversaries tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 117,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /finance-numbering/list tanpa token → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 121,
-          "state": "passed",
-          "title": [
-            "[5] AuthN — Tanpa Token & Token Invalid",
-            "GET /auth/me dengan token invalid → 401"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 125,
-          "state": "passed",
-          "title": [
-            "[6] RBAC — 403 Forbidden",
-            "tim_layanan POST /companies → 403"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 113,
-          "state": "passed",
-          "title": [
-            "[6] RBAC — 403 Forbidden",
-            "tim_layanan DELETE /companies/1 → 403"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 125,
-          "state": "passed",
-          "title": [
-            "[6] RBAC — 403 Forbidden",
-            "ro DELETE /companies/1 → 403"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 129,
-          "state": "passed",
-          "title": [
-            "[6] RBAC — 403 Forbidden",
-            "tim_layanan POST /invoices → 403"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 118,
-          "state": "passed",
-          "title": [
-            "[6] RBAC — 403 Forbidden",
-            "tim_layanan POST /users → 403"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 155,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /companies → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 166,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /users → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 149,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /sectors → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 134,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /targets → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 140,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /commitments → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 160,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /invoices → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 154,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /receipts → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 125,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /transactions → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 131,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /taat-zakat → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 129,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /bsz-claims → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 124,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /notifications → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 126,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /notifications/unread-count → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 139,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /audit-logs → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 125,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /finance-numbering/list → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 146,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /dashboard/zakat-stats → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 163,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /dashboard/anniversaries → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 135,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /targets/realization → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 120,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /companies tidak ada → 404"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 106,
-          "state": "passed",
-          "title": [
-            "[7] GET List Utama — 200 & Envelope",
-            "GET /route-tidak-ada → 404"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 137,
-          "state": "passed",
-          "title": [
-            "[8] CRUD — Sector",
-            "POST /sectors → 201 dan simpan sectorId"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 114,
-          "state": "passed",
-          "title": [
-            "[8] CRUD — Sector",
-            "GET /sectors → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 138,
-          "state": "passed",
-          "title": [
-            "[8] CRUD — Sector",
-            "PUT /sectors/:id → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B03 — Nama Perusahaan melebihi 200 karakter"
           ]
         },
         {
@@ -987,12 +203,12 @@
               "state": "failed"
             }
           ],
-          "displayError": "CypressError: `cy.request()` failed on:\n\nhttps://service-zaper-53046748745.asia-southeast2.run.app/api/v1/companies\n\nThe response we received from your web server was:\n\n  > 500: Internal Server Error\n\nThis was considered a failure because the status code was not `2xx` or `3xx`.\n\nIf you do not want status codes to cause failures pass the option: `failOnStatusCode: false`\n\n-----------------------------------------------------------\n\nThe request we sent was:\n\nMethod: POST\nURL: https://service-zaper-53046748745.asia-southeast2.run.app/api/v1/companies\nHeaders: {\n  \"Connection\": \"keep-alive\",\n  \"Authorization\": \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXVpZCI6Ijk3MDgwNGM4LTcwM2ItMTFmMS1iYTMzLTQyMDEwYTVlMDAwMiIsImVtYWlsIjoiYWRtaW5AYmF6bmFzLmdvLmlkIiwibmFtZSI6IkFkbWluIFphcGVyIiwicm9sZXMiOlsiYWRtaW5femFwZXIiXSwiaWF0IjoxNzgzMDYwMDg4LCJleHAiOjE3ODMwNjM2ODh9.pxz1CAyw0ROvtqyIV6j4KMwUBrQmCtAEfGpwfe9SXBE\",\n  \"user-agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cypress/15.18.0 Chrome/138.0.7204.251 Electron/37.6.0 Safari/537.36\",\n  \"accept\": \"*/*\",\n  \"accept-encoding\": \"gzip, deflate\",\n  \"content-type\": \"application/json\",\n  \"content-length\": 508\n}\nBody: {\"code\":\"CYP1783060098784\",\"name\":\"PT Cypress Testing\",\"companyType\":\"pt\",\"npwp\":\"12.345.678.9-012.345\",\"npwz\":\"Z1783060098784\",\"address\":\"Jl. Cypress No. 1\",\"city\":\"Jakarta\",\"province\":\"DKI Jakarta\",\"postalCode\":\"10000\",\"phone\":\"021-99999999\",\"email\":\"cypress1783060098784@test.com\",\"leaderName\":\"Direktur Test\",\"picName\":\"PIC Test\",\"picPosition\":\"Finance Manager\",\"picPhone\":\"08119999999\",\"picEmail\":\"pic1783060098784@test.com\",\"sector\":18,\"employeeCount\":50,\"roId\":null,\"notes\":\"Dibuat oleh Cypress test\"}\n\n-----------------------------------------------------------\n\nThe response we got was:\n\nStatus: 500 - Internal Server Error\nHeaders: {\n  \"access-control-allow-credentials\": \"true\",\n  \"access-control-allow-origin\": \"*\",\n  \"access-control-expose-headers\": \"Content-Disposition\",\n  \"content-type\": \"application/json\",\n  \"vary\": \"Accept-Encoding\",\n  \"content-encoding\": \"gzip\",\n  \"x-cloud-trace-context\": \"849c7f66f7fc97d3fba122da9509b6f8\",\n  \"date\": \"Fri, 03 Jul 2026 06:28:20 GMT\",\n  \"server\": \"Google Frontend\",\n  \"alt-svc\": \"h3=\\\":443\\\"; ma=2592000,h3-29=\\\":443\\\"; ma=2592000\",\n  \"transfer-encoding\": \"chunked\"\n}\nBody: {\n  \"success\": false,\n  \"status_code\": 500,\n  \"status\": \"error\",\n  \"message\": \"[403] Failed to create company\",\n  \"data\": {}\n}\n\n\nhttps://on.cypress.io/request\n    at <unknown> (http://localhost:56966/__cypress/runner/cypress_runner.js:137490:72)\n    at tryCatcher (http://localhost:56966/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise._settlePromiseFromHandler (http://localhost:56966/__cypress/runner/cypress_runner.js:1489:31)\n    at Promise._settlePromise (http://localhost:56966/__cypress/runner/cypress_runner.js:1546:18)\n    at Promise._settlePromise0 (http://localhost:56966/__cypress/runner/cypress_runner.js:1591:10)\n    at Promise._settlePromises (http://localhost:56966/__cypress/runner/cypress_runner.js:1671:18)\n    at _drainQueueStep (http://localhost:56966/__cypress/runner/cypress_runner.js:2377:12)\n    at _drainQueue (http://localhost:56966/__cypress/runner/cypress_runner.js:2370:9)\n    at Async._drainQueues (http://localhost:56966/__cypress/runner/cypress_runner.js:2386:5)\n    at Async.drainQueues (http://localhost:56966/__cypress/runner/cypress_runner.js:2256:14)\nFrom Your Spec Code:\n    at Context.eval (webpack://qa-dashboard/./cypress/e2e/service-zapper/service-zaper.cy.ts:380:7)",
-          "duration": 683,
+          "displayError": "AssertionError: API harus menolak enum companyType yang tidak valid: expected 500 to be one of [ 400, 422 ]\n    at Context.eval (webpack://qa-dashboard/./cypress/e2e/aplikasi-zapper/companies-validation.cy.ts:82:86)\n    at getRet (https://fe-zaper-staging-53046748745.asia-southeast2.run.app/__cypress/runner/cypress_runner.js:120444:20)\n    at tryCatcher (https://fe-zaper-staging-53046748745.asia-southeast2.run.app/__cypress/runner/cypress_runner.js:1777:23)\n    at Promise.attempt.Promise.try (https://fe-zaper-staging-53046748745.asia-southeast2.run.app/__cypress/runner/cypress_runner.js:4285:29)\n    at Context.thenFn (https://fe-zaper-staging-53046748745.asia-southeast2.run.app/__cypress/runner/cypress_runner.js:120455:66)\n    at Context.then (https://fe-zaper-staging-53046748745.asia-southeast2.run.app/__cypress/runner/cypress_runner.js:120706:21)",
+          "duration": 1165,
           "state": "failed",
           "title": [
-            "[9] CRUD — Company",
-            "POST /companies → 201 dan simpan companyId"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B04 — Tipe Perusahaan invalid ditembak langsung ke API (form selalu punya default \"Umum\")"
           ]
         },
         {
@@ -1002,11 +218,11 @@
             }
           ],
           "displayError": null,
-          "duration": 60,
+          "duration": 6755,
           "state": "passed",
           "title": [
-            "[9] CRUD — Company",
-            "GET /companies/:id → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B05 — Nama Pimpinan kosong"
           ]
         },
         {
@@ -1016,11 +232,11 @@
             }
           ],
           "displayError": null,
-          "duration": 55,
+          "duration": 9210,
           "state": "passed",
           "title": [
-            "[9] CRUD — Company",
-            "PATCH /companies/:id/status → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B06 — Nama Pimpinan 1 karakter (min 2)"
           ]
         },
         {
@@ -1030,11 +246,11 @@
             }
           ],
           "displayError": null,
-          "duration": 134,
+          "duration": 203828,
           "state": "passed",
           "title": [
-            "[9] CRUD — Company",
-            "GET /companies/search?keyword=Cypress → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B07 — Nama PIC kosong"
           ]
         },
         {
@@ -1044,11 +260,11 @@
             }
           ],
           "displayError": null,
-          "duration": 61,
+          "duration": 354432,
           "state": "passed",
           "title": [
-            "[10] CRUD — Commitment",
-            "POST /commitments → 201 dan simpan commitmentId"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B08 — Nama PIC melebihi 100 karakter"
           ]
         },
         {
@@ -1058,11 +274,11 @@
             }
           ],
           "displayError": null,
-          "duration": 66,
+          "duration": 284496,
           "state": "passed",
           "title": [
-            "[10] CRUD — Commitment",
-            "GET /commitments/:id → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B09 — Bidang Usaha tidak dipilih"
           ]
         },
         {
@@ -1072,11 +288,11 @@
             }
           ],
           "displayError": null,
-          "duration": 99,
+          "duration": 230968,
           "state": "passed",
           "title": [
-            "[10] CRUD — Commitment",
-            "POST /commitments body kosong → 400/422"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B10 — Alamat kosong"
           ]
         },
         {
@@ -1086,11 +302,11 @@
             }
           ],
           "displayError": null,
-          "duration": 60,
+          "duration": 248284,
           "state": "passed",
           "title": [
-            "[11] CRUD — Invoice",
-            "POST /invoices → 201 dan simpan invoiceId"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B11 — Alamat kurang dari 5 karakter"
           ]
         },
         {
@@ -1100,11 +316,11 @@
             }
           ],
           "displayError": null,
-          "duration": 54,
+          "duration": 742616,
           "state": "passed",
           "title": [
-            "[11] CRUD — Invoice",
-            "GET /invoices/:id → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B12 — Alamat melebihi 500 karakter"
           ]
         },
         {
@@ -1114,11 +330,11 @@
             }
           ],
           "displayError": null,
-          "duration": 49,
+          "duration": 257433,
           "state": "passed",
           "title": [
-            "[11] CRUD — Invoice",
-            "PATCH /invoices/:id/sign → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B13 — Nomor Telepon kosong"
           ]
         },
         {
@@ -1128,11 +344,11 @@
             }
           ],
           "displayError": null,
-          "duration": 108,
+          "duration": 261503,
           "state": "passed",
           "title": [
-            "[11] CRUD — Invoice",
-            "POST /invoices body kosong → 400/422"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B14 — Nomor Telepon kurang dari 8 karakter"
           ]
         },
         {
@@ -1142,11 +358,11 @@
             }
           ],
           "displayError": null,
-          "duration": 59,
+          "duration": 264563,
           "state": "passed",
           "title": [
-            "[12] CRUD — Receipt",
-            "POST /receipts → 201 dan simpan receiptId"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B15 — Nomor Telepon melebihi 20 karakter"
           ]
         },
         {
@@ -1156,11 +372,11 @@
             }
           ],
           "displayError": null,
-          "duration": 58,
+          "duration": 268411,
           "state": "passed",
           "title": [
-            "[12] CRUD — Receipt",
-            "GET /receipts/:id → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B16 — [GAP] Nomor Telepon berisi huruf non-digit lolos validasi client (zod tanpa regex digit)"
           ]
         },
         {
@@ -1170,11 +386,11 @@
             }
           ],
           "displayError": null,
-          "duration": 196,
+          "duration": 222721,
           "state": "passed",
           "title": [
-            "[12] CRUD — Receipt",
-            "PATCH /receipts/:id/sign → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B17 — Email kosong"
           ]
         },
         {
@@ -1184,11 +400,11 @@
             }
           ],
           "displayError": null,
-          "duration": 121,
+          "duration": 230959,
           "state": "passed",
           "title": [
-            "[12] CRUD — Receipt",
-            "POST /receipts body kosong → 400/422"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B18.1 — Email format salah: \"not-an-email\""
           ]
         },
         {
@@ -1198,11 +414,11 @@
             }
           ],
           "displayError": null,
-          "duration": 65,
+          "duration": 239041,
           "state": "passed",
           "title": [
-            "[13] CRUD — Transaction",
-            "POST /transactions → 201 dan simpan transactionId"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B18.2 — Email format salah: \"user@\""
           ]
         },
         {
@@ -1212,11 +428,11 @@
             }
           ],
           "displayError": null,
-          "duration": 55,
+          "duration": 246124,
           "state": "passed",
           "title": [
-            "[13] CRUD — Transaction",
-            "GET /transactions/:id → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B18.3 — Email format salah: \"@domain.com\""
           ]
         },
         {
@@ -1226,11 +442,11 @@
             }
           ],
           "displayError": null,
-          "duration": 68,
+          "duration": 259217,
           "state": "passed",
           "title": [
-            "[13] CRUD — Transaction",
-            "GET /transactions/by-company/:companyId → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B18.4 — Email format salah: \"user domain.com\""
           ]
         },
         {
@@ -1240,11 +456,11 @@
             }
           ],
           "displayError": null,
-          "duration": 69,
+          "duration": 244336,
           "state": "passed",
           "title": [
-            "[14] Taat Zakat Certificate",
-            "POST /taat-zakat/issue → 201 dan simpan certId"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B18.5 — Email format salah: \"user@@domain.com\""
           ]
         },
         {
@@ -1254,11 +470,11 @@
             }
           ],
           "displayError": null,
-          "duration": 65,
+          "duration": 274467,
           "state": "passed",
           "title": [
-            "[14] Taat Zakat Certificate",
-            "GET /taat-zakat/detail/:id → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B19 — NPWP melebihi 20 karakter"
           ]
         },
         {
@@ -1268,11 +484,11 @@
             }
           ],
           "displayError": null,
-          "duration": 93,
+          "duration": 260275,
           "state": "passed",
           "title": [
-            "[14] Taat Zakat Certificate",
-            "GET /taat-zakat → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B20 — [GAP] NPWP format bebas lolos validasi client (tanpa regex format resmi)"
           ]
         },
         {
@@ -1282,11 +498,11 @@
             }
           ],
           "displayError": null,
-          "duration": 147,
+          "duration": 305789,
           "state": "passed",
           "title": [
-            "[15] Notifikasi & Audit Log",
-            "GET /notifications → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B21 — NPWZ melebihi 50 karakter"
           ]
         },
         {
@@ -1296,11 +512,11 @@
             }
           ],
           "displayError": null,
-          "duration": 93,
+          "duration": 1258948,
           "state": "passed",
           "title": [
-            "[15] Notifikasi & Audit Log",
-            "GET /notifications/unread-count → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B22 — Catatan melebihi 1000 karakter (blokir submit walau tanpa pesan error visual)"
           ]
         },
         {
@@ -1310,79 +526,23 @@
             }
           ],
           "displayError": null,
-          "duration": 92,
+          "duration": 19253,
           "state": "passed",
           "title": [
-            "[15] Notifikasi & Audit Log",
-            "PATCH /notifications/read-all → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 94,
-          "state": "passed",
-          "title": [
-            "[15] Notifikasi & Audit Log",
-            "GET /audit-logs → 200"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 525,
-          "state": "passed",
-          "title": [
-            "[16] Auth — Refresh Token & Logout",
-            "POST /auth/login ulang → dapat refresh_token"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 91,
-          "state": "passed",
-          "title": [
-            "[16] Auth — Refresh Token & Logout",
-            "POST /auth/refresh-token → 200 dan dapat token baru"
-          ]
-        },
-        {
-          "attempts": [
-            {
-              "state": "passed"
-            }
-          ],
-          "displayError": null,
-          "duration": 78,
-          "state": "passed",
-          "title": [
-            "[16] Auth — Refresh Token & Logout",
-            "POST /auth/logout → 200"
+            "[Companies][B] Field Validation — Negative Cases",
+            "TC-COMPANY-001-B23 — Semua field wajib dikosongkan sekaligus"
           ]
         }
       ],
       "video": null
     }
   ],
-  "startedTestsAt": "2026-07-03T06:28:06.592Z",
-  "totalDuration": 16448,
+  "startedTestsAt": "2026-07-14T03:42:14.492Z",
+  "totalDuration": 6746769,
   "totalFailed": 1,
-  "totalPassed": 86,
+  "totalPassed": 26,
   "totalPending": 0,
   "totalSkipped": 0,
-  "totalSuites": 16,
-  "totalTests": 87
+  "totalSuites": 1,
+  "totalTests": 27
 }
